@@ -214,11 +214,8 @@ Prioridad de cobertura: la regla que calcula el estado de vencimiento, los casos
 
 | Nombre | Rol principal | Responsabilidades |
 |---|---|---|
-| _Nombre y apellido_ | _Ej.: Arquitectura_ | _Ej.: capas, repositorios, casos de uso_ |
-| _Nombre y apellido_ | _Ej.: UI / UX_ | _Ej.: Compose, navegación, accesibilidad_ |
-| _Nombre y apellido_ | _Ej.: Persistencia_ | _Ej.: Room, DataStore, WorkManager_ |
+| Tomas Iñiguez Guerrisi | PMO | Desarrollo de todo |
 
-Los roles no son exclusivos: todos los integrantes conocen el funcionamiento general de la app.
 
 ### Ramas
 
