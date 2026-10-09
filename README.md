@@ -145,7 +145,7 @@ app/src/main/java/<paquete>/
 
 1. Clonar el repositorio:
    ```bash
-   git clone <URL-DEL-REPOSITORIO>
+   git clone <https://github.com/TomIniguez/FreskoApp>
    cd <carpeta-del-repositorio>
    ```
 2. Abrir la carpeta con Android Studio y esperar a que termine la sincronización de Gradle.
