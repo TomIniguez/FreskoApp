@@ -1,4 +1,4 @@
-package com.example.freskoapp.ui.theme
+package com.example.freskoapp.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
