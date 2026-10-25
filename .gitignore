@@ -1,12 +1,9 @@
 *.iml
 .gradle
+.kotlin
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+# Android Studio settings are personal (see README: no IDE config in the repo)
+/.idea/
 .DS_Store
 /build
 /captures
