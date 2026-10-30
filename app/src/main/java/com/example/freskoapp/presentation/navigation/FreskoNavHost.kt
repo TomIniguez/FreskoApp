@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.example.freskoapp.presentation.addproduct.AddProductScreen
+import com.example.freskoapp.presentation.detail.ProductDetailScreen
 import com.example.freskoapp.presentation.inventory.InventoryScreen
 import com.example.freskoapp.presentation.settings.SettingsScreen
 
@@ -30,6 +31,21 @@ fun FreskoNavHost() {
             InventoryScreen(
                 onAddClick = { navController.navigate("add_product") },
                 onSettingsClick = { navController.navigate("settings") },
+                onProductClick = { id -> navController.navigate(productDetailRoute(id)) },
+            )
+        }
+        composable(
+            route = PRODUCT_DETAIL_ROUTE,
+            arguments = listOf(navArgument(PRODUCT_ID_ARG) { type = NavType.LongType }),
+        ) {
+            ProductDetailScreen(
+                onBack = { navController.popBackStack() },
+                onRemoved = { removal ->
+                    // Hand the result to the Inventory (it shows "Deshacer") and pop only up to it, so a repeated
+                    // callback can never pop the Inventory itself and close the app.
+                    navController.getBackStackEntry(INVENTORY_ROUTE).savedStateHandle.putRemoval(removal)
+                    navController.popBackStack(INVENTORY_ROUTE, inclusive = false)
+                },
             )
         }
         composable("add_product") {
