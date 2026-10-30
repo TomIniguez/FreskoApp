@@ -4,6 +4,7 @@ import com.example.freskoapp.domain.model.ExpirationStatus
 import com.example.freskoapp.domain.model.InventoryFilter
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
+import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,9 @@ class GetInventoryUseCaseTest {
     )
     private val repo = object : ProductRepository {
         override fun getProducts(): Flow<List<Product>> = flowOf(products)
+        override fun getProduct(id: Long): Flow<Product?> = flowOf(null)
         override suspend fun addProduct(product: Product) = Unit
+        override suspend fun changeStatus(id: Long, from: ProductStatus, to: ProductStatus) = false
     }
     private val useCase = GetInventoryUseCase(repo, clock = clock)
 
