@@ -34,13 +34,18 @@ class SettingsRepositoryImplTest {
     }
 
     @Test
-    fun outOfRangeStoredValueIsClamped() = runTest {
+    fun tooHighStoredValueIsClampedToMax() = runTest {
         val store = dataStore()
-        val repo = SettingsRepositoryImpl(store)
         store.edit { it[intPreferencesKey("warning_days")] = 99 }
-        assertEquals(7, repo.warningDays.first())
+        assertEquals(7, SettingsRepositoryImpl(store).warningDays.first())
+    }
+
+    // One write per test: on Windows a second write to the same file can fail to rename the temp file.
+    @Test
+    fun tooLowStoredValueIsClampedToMin() = runTest {
+        val store = dataStore()
         store.edit { it[intPreferencesKey("warning_days")] = 0 }
-        assertEquals(1, repo.warningDays.first())
+        assertEquals(1, SettingsRepositoryImpl(store).warningDays.first())
     }
 
     @Test
