@@ -6,8 +6,11 @@ import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -53,6 +56,27 @@ class GetInventoryUseCaseTest {
     @Test
     fun filtersByLocation() = runTest {
         assertEquals(listOf(1L, 3L), ids(InventoryFilter(location = Location.HELADERA)))
+    }
+
+    @Test
+    fun usesWarningDaysFromFlow() = runTest {
+        val wide = GetInventoryUseCase(repo, clock = clock, warningDays = flowOf(14))
+        val soon = wide(InventoryFilter(status = ExpirationStatus.EXPIRING_SOON)).first().map { it.product.id }
+        assertEquals(listOf(2L, 3L), soon)
+    }
+
+    @Test
+    fun reEmitsWhenWarningDaysChange() = runTest {
+        val days = MutableStateFlow(3)
+        val dynamic = GetInventoryUseCase(repo, clock = clock, warningDays = days)
+        val filter = InventoryFilter(status = ExpirationStatus.EXPIRING_SOON)
+        val emissions = mutableListOf<List<Long>>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            dynamic(filter).collect { items -> emissions.add(items.map { it.product.id }) }
+        }
+        days.value = 10
+        job.cancel()
+        assertEquals(listOf(listOf(2L), listOf(2L, 3L)), emissions)
     }
 
     @Test

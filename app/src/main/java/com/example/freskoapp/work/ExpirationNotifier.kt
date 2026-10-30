@@ -1,0 +1,71 @@
+package com.example.freskoapp.work
+
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import com.example.freskoapp.MainActivity
+import com.example.freskoapp.R
+import com.example.freskoapp.domain.model.ExpirationStatus
+import com.example.freskoapp.domain.model.Product
+import com.example.freskoapp.presentation.common.canPostNotifications
+import com.example.freskoapp.presentation.navigation.inventoryDeepLink
+
+object ExpirationNotifier {
+    const val CHANNEL_ID = "expiration_alerts"
+    const val NOTIFICATION_ID = 1001
+
+    // minSdk is 26, so channels always exist; creating an existing channel is a no-op.
+    fun createChannel(context: Context) {
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            context.getString(R.string.notification_channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply { description = context.getString(R.string.notification_channel_description) }
+        context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+    }
+
+    // One summary notification; with nothing expiring it clears the previous one instead of posting.
+    fun show(context: Context, products: List<Product>) {
+        val manager = NotificationManagerCompat.from(context)
+        if (products.isEmpty()) {
+            manager.cancel(NOTIFICATION_ID)
+            return
+        }
+        if (!context.canPostNotifications()) return
+        // Redundant with canPostNotifications(), but lint only recognizes a direct permission check.
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) return
+
+        // NEW_TASK + CLEAR_TASK so the deep link is delivered even if the app is already running.
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            inventoryDeepLink(ExpirationStatus.EXPIRING_SOON),
+            context,
+            MainActivity::class.java,
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        val contentIntent = PendingIntent.getActivity(
+            context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+
+        val names = products.joinToString { it.name }
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_fresko)
+            .setContentTitle(
+                context.resources.getQuantityString(R.plurals.notification_expiring_title, products.size, products.size)
+            )
+            .setContentText(names)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(names))
+            .setContentIntent(contentIntent)
+            .setAutoCancel(true)
+            .build()
+        manager.notify(NOTIFICATION_ID, notification)
+    }
+}
