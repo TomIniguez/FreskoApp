@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.map
 
 class ProductRepositoryImpl(private val dao: ProductDao) : ProductRepository {
     override fun getProducts(): Flow<List<Product>> =
-        dao.getAll().map { list -> list.map { it.toDomain() } }
+        dao.getActive().map { list -> list.map { it.toDomain() } }
 
     override suspend fun addProduct(product: Product) = dao.insert(product.toEntity())
 }

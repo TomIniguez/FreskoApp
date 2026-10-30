@@ -40,7 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.freskoapp.R
 import com.example.freskoapp.domain.model.Location
-import com.example.freskoapp.presentation.labelRes
+import com.example.freskoapp.presentation.common.labelRes
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter

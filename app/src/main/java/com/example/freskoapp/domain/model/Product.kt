@@ -8,4 +8,5 @@ data class Product(
     val expirationDate: LocalDate,
     val quantity: Int,
     val location: Location,
+    val status: ProductStatus = ProductStatus.ACTIVE,
 )

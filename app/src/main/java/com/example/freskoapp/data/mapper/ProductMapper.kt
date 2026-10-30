@@ -3,6 +3,7 @@ package com.example.freskoapp.data.mapper
 import com.example.freskoapp.data.local.ProductEntity
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
+import com.example.freskoapp.domain.model.ProductStatus
 import java.time.LocalDate
 
 fun ProductEntity.toDomain() = Product(
@@ -11,6 +12,7 @@ fun ProductEntity.toDomain() = Product(
     expirationDate = LocalDate.ofEpochDay(expirationEpochDay),
     quantity = quantity,
     location = Location.valueOf(location),
+    status = ProductStatus.valueOf(status),
 )
 
 fun Product.toEntity() = ProductEntity(
@@ -19,4 +21,5 @@ fun Product.toEntity() = ProductEntity(
     expirationEpochDay = expirationDate.toEpochDay(),
     quantity = quantity,
     location = location.name,
+    status = status.name,
 )

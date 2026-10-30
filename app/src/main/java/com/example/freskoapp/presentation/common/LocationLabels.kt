@@ -1,4 +1,4 @@
-package com.example.freskoapp.presentation
+package com.example.freskoapp.presentation.common
 
 import androidx.annotation.StringRes
 import com.example.freskoapp.R
