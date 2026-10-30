@@ -70,8 +70,7 @@ El diseño de la experiencia (UI / UX / CX) está en Figma, con sistema de dise�
 | **Retrofit** | Consulta a la API de Open Food Facts. |
 | **WorkManager** | Verificación diaria de vencimientos y notificaciones locales. |
 | **CameraX + ML Kit (barcode)** | Escaneo de códigos de barras en el dispositivo. |
-
-<!-- TODO: si se usa inyección de dependencias (Hilt, Koin o manual), agregarla acá con su justificación -->
+| **DI manual vía FreskoApplication** | Sin framework: las fábricas de ViewModel y el Worker obtienen sus dependencias de la clase `Application`. Alcanza para el tamaño actual de la app. |
 
 Las versiones exactas están en `gradle/libs.versions.toml`.
 
@@ -166,7 +165,7 @@ No hace falta configurar claves ni variables de entorno: la API de Open Food Fac
 | Permiso | Motivo | Cuándo se pide |
 |---|---|---|
 | `CAMERA` | Escanear códigos de barras. | Al entrar al escáner, no al iniciar la app. |
-| `POST_NOTIFICATIONS` (Android 13+) | Mostrar los avisos de vencimiento. | En el onboarding, con una explicación previa. |
+| `POST_NOTIFICATIONS` (Android 13+) | Mostrar los avisos de vencimiento. | Desde la tarjeta del Inventario y desde Ajustes, con una explicación previa, hasta que exista el onboarding. |
 | `INTERNET` | Consultar Open Food Facts. | No requiere confirmación del usuario. |
 
 Si el usuario rechaza un permiso, la app sigue siendo usable: sin cámara se carga a mano, y sin notificaciones se informa en Ajustes cómo activarlas.
@@ -185,7 +184,7 @@ Prioridad de cobertura: la regla que calcula el estado de vencimiento, los casos
 - [x] Etapa 1: análisis y diseño (problema, requisitos, diseño en Figma, arquitectura)
 - [ ] RF01 · Registrar producto
 - [ ] RF02 · Inventario con filtros
-- [ ] RF03 · Alertas de vencimiento
+- [x] RF03 · Alertas de vencimiento
 - [ ] RF04 · Baja con "Deshacer"
 - [ ] Estados de error, vacío y sin conexión
 - [ ] Pruebas unitarias del dominio
@@ -206,6 +205,7 @@ Prioridad de cobertura: la regla que calcula el estado de vencimiento, los casos
 - Los datos viven solo en un dispositivo: no hay respaldo ni sincronización entre teléfonos.
 - La fecha de vencimiento se ingresa a mano.
 - El autocompletado depende de que el producto exista en Open Food Facts.
+- Los avisos se envían a las 09:00 (hora fija, todavía no configurable) y no son exactos: Android puede demorarlos por el ahorro de batería (Doze).
 - Solo Android.
 
 ## Equipo y forma de trabajo

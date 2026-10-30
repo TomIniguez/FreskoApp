@@ -11,10 +11,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,7 +34,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.freskoapp.R
 import com.example.freskoapp.domain.model.ExpirationStatus
 import com.example.freskoapp.domain.model.Location
+import com.example.freskoapp.presentation.common.NotificationPermissionCard
 import com.example.freskoapp.presentation.common.labelRes
+import com.example.freskoapp.presentation.common.rememberNotificationPermissionState
 import java.time.format.DateTimeFormatter
 
 private val dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -41,12 +45,24 @@ private val dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 @Composable
 fun InventoryScreen(
     onAddClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     viewModel: InventoryViewModel = viewModel(factory = InventoryViewModel.Factory),
 ) {
     val items by viewModel.items.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
+    val promptDismissed by viewModel.notificationPromptDismissed.collectAsStateWithLifecycle()
+    val permission = rememberNotificationPermissionState()
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.inventory_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.inventory_title)) },
+                actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_cd))
+                    }
+                },
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddClick) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_product_cd))
@@ -54,6 +70,13 @@ fun InventoryScreen(
         },
     ) { innerPadding ->
         Column(Modifier.padding(innerPadding)) {
+            if (!promptDismissed && !permission.granted) {
+                NotificationPermissionCard(
+                    state = permission,
+                    onDismiss = viewModel::dismissNotificationPrompt,
+                    modifier = Modifier.padding(16.dp),
+                )
+            }
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
