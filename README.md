@@ -185,7 +185,7 @@ Prioridad de cobertura: la regla que calcula el estado de vencimiento, los casos
 - [ ] RF01 · Registrar producto
 - [ ] RF02 · Inventario con filtros
 - [x] RF03 · Alertas de vencimiento
-- [ ] RF04 · Baja con "Deshacer"
+- [x] RF04 · Baja con "Deshacer"
 - [ ] Estados de error, vacío y sin conexión
 - [ ] Pruebas unitarias del dominio
 
