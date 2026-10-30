@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">FreskoApp</string>
+    <string name="inventory_title">Fresko</string>
+    <string name="add_product_cd">Agregar producto</string>
+    <string name="inventory_empty">Todavía no registraste productos</string>
+    <string name="inventory_item_detail">Vence: %1$s · %2$s · Cantidad: %3$d</string>
+    <string name="inventory_empty_filtered">Ningún producto coincide con los filtros</string>
+    <string name="clear_filters">Quitar filtros</string>
+    <string name="status_expired">Vencido</string>
+    <string name="status_expiring_soon">Por vencer</string>
+    <string name="status_fresh">Vigente</string>
+    <string name="add_product_title">Nuevo producto</string>
+    <string name="back_cd">Volver</string>
+    <string name="field_name">Nombre</string>
+    <string name="field_quantity">Cantidad</string>
+    <string name="field_location">Ubicación</string>
+    <string name="pick_date">Elegir fecha</string>
+    <string name="accept">Aceptar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="save">Guardar</string>
+    <string name="location_heladera">Heladera</string>
+    <string name="location_freezer">Freezer</string>
+    <string name="location_alacena">Alacena</string>
 </resources>
