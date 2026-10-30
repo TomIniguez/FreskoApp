@@ -10,3 +10,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Docs and plans stay local: README.md is the only Markdown file in the repo
+/docs/
+*.md
+!/README.md
