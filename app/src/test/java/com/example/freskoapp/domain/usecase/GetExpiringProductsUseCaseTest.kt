@@ -1,7 +1,9 @@
 package com.example.freskoapp.domain.usecase
 
+import com.example.freskoapp.domain.FakeProductRepository
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
+import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -29,7 +31,9 @@ class GetExpiringProductsUseCaseTest {
             GetInventoryUseCase(
                 object : ProductRepository {
                     override fun getProducts(): Flow<List<Product>> = flowOf(products.toList())
+                    override fun getProduct(id: Long): Flow<Product?> = flowOf(null)
                     override suspend fun addProduct(product: Product) = Unit
+                    override suspend fun changeStatus(id: Long, from: ProductStatus, to: ProductStatus) = false
                 },
                 clock = clock,
                 warningDays = flowOf(warningDays),
@@ -56,5 +60,17 @@ class GetExpiringProductsUseCaseTest {
     @Test
     fun emptyWhenNothingIsExpiring() = runTest {
         assertEquals(emptyList<Product>(), useCase(product(1, -5), product(2, 20))())
+    }
+
+    // RF04 interaction: a consumed/discarded product stops being notified; undo makes it eligible again.
+    @Test
+    fun markedProductIsNotListedAndRestoredProductIs() = runTest {
+        val repo = FakeProductRepository(listOf(product(1, 1)))
+        val expiring = GetExpiringProductsUseCase(GetInventoryUseCase(repo, clock = clock))
+        assertEquals(listOf(1L), expiring().map { it.id })
+        MarkProductUseCase(repo)(1, ProductStatus.CONSUMED)
+        assertEquals(emptyList<Long>(), expiring().map { it.id })
+        RestoreProductUseCase(repo)(1, ProductStatus.CONSUMED)
+        assertEquals(listOf(1L), expiring().map { it.id })
     }
 }

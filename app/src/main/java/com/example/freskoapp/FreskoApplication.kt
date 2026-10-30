@@ -10,6 +10,7 @@ import com.example.freskoapp.data.repository.ProductRepositoryImpl
 import com.example.freskoapp.domain.repository.ProductRepository
 import com.example.freskoapp.domain.repository.SettingsRepository
 import com.example.freskoapp.domain.usecase.GetInventoryUseCase
+import com.example.freskoapp.domain.usecase.GetProductDetailUseCase
 import com.example.freskoapp.work.ExpirationCheckScheduler
 import com.example.freskoapp.work.ExpirationNotifier
 
@@ -28,6 +29,8 @@ class FreskoApplication : Application() {
 
     // The inventory and the daily worker share the user's warning days through this use case.
     fun getInventoryUseCase() = GetInventoryUseCase(productRepository, warningDays = settingsRepository.warningDays)
+
+    fun getProductDetailUseCase() = GetProductDetailUseCase(productRepository, warningDays = settingsRepository.warningDays)
 
     override fun onCreate() {
         super.onCreate()

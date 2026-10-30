@@ -2,6 +2,7 @@ package com.example.freskoapp.domain.usecase
 
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
+import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -15,7 +16,9 @@ import java.time.LocalDate
 private class FakeRepository : ProductRepository {
     val saved = mutableListOf<Product>()
     override fun getProducts(): Flow<List<Product>> = flowOf(saved)
+    override fun getProduct(id: Long): Flow<Product?> = flowOf(null)
     override suspend fun addProduct(product: Product) { saved += product }
+    override suspend fun changeStatus(id: Long, from: ProductStatus, to: ProductStatus) = false
 }
 
 class AddProductUseCaseTest {
