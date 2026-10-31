@@ -2,6 +2,7 @@ package com.example.freskoapp.domain.usecase
 
 import com.example.freskoapp.domain.FakeProductRepository
 import com.example.freskoapp.domain.model.Location
+import com.example.freskoapp.domain.model.AddResult
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.repository.ProductRepository
@@ -32,7 +33,7 @@ class GetExpiringProductsUseCaseTest {
                 object : ProductRepository {
                     override fun getProducts(): Flow<List<Product>> = flowOf(products.toList())
                     override fun getProduct(id: Long): Flow<Product?> = flowOf(null)
-                    override suspend fun addProduct(product: Product) = Unit
+                    override suspend fun addProduct(product: Product) = AddResult.CREATED
                     override suspend fun update(expected: Product, new: Product) = false
                 },
                 clock = clock,

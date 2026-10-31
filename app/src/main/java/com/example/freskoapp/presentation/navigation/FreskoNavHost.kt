@@ -51,7 +51,10 @@ fun FreskoNavHost() {
         composable("add_product") {
             AddProductScreen(
                 onBack = { navController.popBackStack() },
-                onSaved = { navController.popBackStack() },
+                onSaved = { merged ->
+                    if (merged) navController.getBackStackEntry(INVENTORY_ROUTE).savedStateHandle.putLotMerged()
+                    navController.popBackStack()
+                },
             )
         }
         composable("settings") {

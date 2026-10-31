@@ -22,3 +22,12 @@ fun Product.closeUnits(units: Int, newStatus: ProductStatus): Product {
 // Inverse of closeUnits: reopens a closed record, or gives the units back to the one that stayed active.
 fun Product.reopenUnits(units: Int, closed: Boolean): Product =
     if (closed) copy(status = ProductStatus.ACTIVE) else copy(quantity = quantity + units)
+
+// Lot rule for registration: two ACTIVE products are the same lot if name (trim, collapsed whitespace, case-insensitive),
+// expiration date and location match. shortcut: accents stay distinct ("leche" != "léche"), no schema change for a normalized column.
+fun Product.isSameLotAs(other: Product): Boolean =
+    status == ProductStatus.ACTIVE && other.status == ProductStatus.ACTIVE &&
+        expirationDate == other.expirationDate && location == other.location &&
+        name.normalizedName() == other.name.normalizedName()
+
+private fun String.normalizedName() = trim().replace(Regex("\\s+"), " ").lowercase()

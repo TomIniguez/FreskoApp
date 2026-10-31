@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.freskoapp.FreskoApplication
+import com.example.freskoapp.domain.model.AddResult
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.usecase.AddProductUseCase
@@ -32,8 +33,8 @@ class AddProductViewModel(private val addProduct: AddProductUseCase) : ViewModel
         // Set before launching so a fast double tap can't insert the product twice.
         _state.update { it.copy(isSaving = true) }
         viewModelScope.launch {
-            addProduct(Product(name = s.name, expirationDate = date, quantity = s.quantity.toInt(), location = s.location))
-            _state.update { it.copy(saved = true) }
+            val result = addProduct(Product(name = s.name, expirationDate = date, quantity = s.quantity.toInt(), location = s.location))
+            _state.update { it.copy(saved = true, merged = result == AddResult.MERGED) }
         }
     }
 

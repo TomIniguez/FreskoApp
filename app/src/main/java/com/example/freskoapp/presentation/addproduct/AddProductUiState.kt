@@ -10,6 +10,7 @@ data class AddProductUiState(
     val location: Location = Location.HELADERA,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
+    val merged: Boolean = false, // only meaningful once saved: the quantity went into an existing lot
 ) {
     val canSave get() = !isSaving && name.isNotBlank() && (quantity.toIntOrNull() ?: 0) > 0 && expirationDate != null
 }

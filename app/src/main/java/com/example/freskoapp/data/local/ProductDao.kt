@@ -3,6 +3,7 @@ package com.example.freskoapp.data.local
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -15,6 +16,20 @@ interface ProductDao {
 
     @Insert
     suspend fun insert(product: ProductEntity)
+
+    @Query("SELECT * FROM products WHERE status = 'ACTIVE' AND expirationEpochDay = :epochDay AND location = :location")
+    suspend fun findActiveLots(epochDay: Long, location: String): List<ProductEntity>
+
+    @Query("UPDATE products SET quantity = quantity + :units WHERE id = :id")
+    suspend fun addQuantity(id: Long, units: Int)
+
+    // Find + merge-or-insert in one transaction so a double tap can't create duplicates. True if it merged.
+    @Transaction
+    suspend fun insertOrMerge(product: ProductEntity, isSameLot: (ProductEntity) -> Boolean): Boolean {
+        val match = findActiveLots(product.expirationEpochDay, product.location).firstOrNull(isSameLot)
+        if (match == null) insert(product) else addQuantity(match.id, product.quantity)
+        return match != null
+    }
 
     // Returns the number of rows changed: 0 if quantity or status no longer match the expected ones.
     @Query("UPDATE products SET quantity = :newQuantity, status = :newStatus WHERE id = :id AND quantity = :oldQuantity AND status = :oldStatus")
