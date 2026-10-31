@@ -29,7 +29,7 @@ fun FreskoNavHost() {
             deepLinks = listOf(navDeepLink { uriPattern = INVENTORY_DEEP_LINK_PATTERN }),
         ) {
             InventoryScreen(
-                onAddClick = { navController.navigate("add_product") },
+                onAddClick = { navController.navigate(addProductRoute()) },
                 onSettingsClick = { navController.navigate("settings") },
                 onProductClick = { id -> navController.navigate(productDetailRoute(id)) },
             )
@@ -39,6 +39,7 @@ fun FreskoNavHost() {
             arguments = listOf(navArgument(PRODUCT_ID_ARG) { type = NavType.LongType }),
         ) {
             ProductDetailScreen(
+                onEdit = { id -> navController.navigate(editProductRoute(id)) },
                 onBack = { navController.popBackStack() },
                 onRemoved = { removal ->
                     // Hand the result to the Inventory (it shows "Deshacer") and pop only up to it, so a repeated
@@ -48,11 +49,19 @@ fun FreskoNavHost() {
                 },
             )
         }
-        composable("add_product") {
+        composable(
+            route = ADD_PRODUCT_ROUTE,
+            arguments = listOf(navArgument(PRODUCT_ID_ARG) { type = NavType.LongType; defaultValue = NO_PRODUCT_ID }),
+        ) {
             AddProductScreen(
                 onBack = { navController.popBackStack() },
                 onSaved = { merged ->
                     if (merged) navController.getBackStackEntry(INVENTORY_ROUTE).savedStateHandle.putLotMerged()
+                    navController.popBackStack()
+                },
+                onUnavailable = {
+                    // Edit mode: the entry below is the product detail, which shows the notice.
+                    navController.previousBackStackEntry?.savedStateHandle?.putProductUnavailable()
                     navController.popBackStack()
                 },
             )

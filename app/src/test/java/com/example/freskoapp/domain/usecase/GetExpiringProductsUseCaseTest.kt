@@ -35,6 +35,7 @@ class GetExpiringProductsUseCaseTest {
                     override fun getProduct(id: Long): Flow<Product?> = flowOf(null)
                     override suspend fun addProduct(product: Product) = AddResult.CREATED
                     override suspend fun update(expected: Product, new: Product) = false
+                    override suspend fun updateDetails(product: Product) = false
                 },
                 clock = clock,
                 warningDays = flowOf(warningDays),

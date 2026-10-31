@@ -12,4 +12,7 @@ interface ProductRepository {
 
     // Compare-and-set: writes quantity and status of `new` only if the stored ones still equal `expected`'s. True if a row changed.
     suspend fun update(expected: Product, new: Product): Boolean
+
+    // Edits name, date, quantity and location of an ACTIVE product, never status or createdAt. False if it is not active.
+    suspend fun updateDetails(product: Product): Boolean
 }

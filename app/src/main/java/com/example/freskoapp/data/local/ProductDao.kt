@@ -23,6 +23,10 @@ interface ProductDao {
     @Query("UPDATE products SET quantity = quantity + :units WHERE id = :id")
     suspend fun addQuantity(id: Long, units: Int)
 
+    // Editing: only ACTIVE rows; never touches status or createdAt. Returns rows changed.
+    @Query("UPDATE products SET name = :name, expirationEpochDay = :epochDay, quantity = :quantity, location = :location WHERE id = :id AND status = 'ACTIVE'")
+    suspend fun updateDetails(id: Long, name: String, epochDay: Long, quantity: Int, location: String): Int
+
     // Find + merge-or-insert in one transaction so a double tap can't create duplicates. True if it merged.
     @Transaction
     suspend fun insertOrMerge(product: ProductEntity, isSameLot: (ProductEntity) -> Boolean): Boolean {

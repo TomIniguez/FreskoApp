@@ -12,4 +12,5 @@ data class ProductEntity(
     val quantity: Int,
     val location: String,
     @ColumnInfo(defaultValue = "'ACTIVE'") val status: String = "ACTIVE", // ProductStatus.name
+    @ColumnInfo(defaultValue = "0") val createdAt: Long = 0,
 )

@@ -52,17 +52,19 @@ private val dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 fun AddProductScreen(
     onBack: () -> Unit,
     onSaved: (merged: Boolean) -> Unit,
+    onUnavailable: () -> Unit,
     viewModel: AddProductViewModel = viewModel(factory = AddProductViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.saved) { if (state.saved) onSaved(state.merged) }
+    LaunchedEffect(state.notAvailable) { if (state.notAvailable) onUnavailable() }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.add_product_title)) },
+                title = { Text(stringResource(if (state.isEditing) R.string.edit_product_title else R.string.add_product_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_cd))

@@ -21,4 +21,8 @@ class ProductRepositoryImpl(private val dao: ProductDao) : ProductRepository {
 
     override suspend fun update(expected: Product, new: Product): Boolean =
         dao.updateIfUnchanged(expected.id, expected.quantity, expected.status.name, new.quantity, new.status.name) > 0
+
+    override suspend fun updateDetails(product: Product): Boolean = dao.updateDetails(
+        product.id, product.name, product.expirationDate.toEpochDay(), product.quantity, product.location.name,
+    ) > 0
 }
