@@ -7,11 +7,16 @@ import com.example.freskoapp.data.local.MIGRATION_1_2
 import com.example.freskoapp.data.local.MIGRATION_2_3
 import com.example.freskoapp.data.preferences.SettingsRepositoryImpl
 import com.example.freskoapp.data.preferences.settingsDataStore
+import com.example.freskoapp.data.remote.OPEN_FOOD_FACTS_BASE_URL
+import com.example.freskoapp.data.remote.openFoodFactsClient
+import com.example.freskoapp.data.repository.ProductInfoRepositoryImpl
 import com.example.freskoapp.data.repository.ProductRepositoryImpl
+import com.example.freskoapp.domain.repository.ProductInfoRepository
 import com.example.freskoapp.domain.repository.ProductRepository
 import com.example.freskoapp.domain.repository.SettingsRepository
 import com.example.freskoapp.domain.usecase.GetInventoryUseCase
 import com.example.freskoapp.domain.usecase.GetProductDetailUseCase
+import com.example.freskoapp.domain.usecase.SearchProductByBarcodeUseCase
 import com.example.freskoapp.work.ExpirationCheckScheduler
 import com.example.freskoapp.work.ExpirationNotifier
 
@@ -27,6 +32,12 @@ class FreskoApplication : Application() {
     }
 
     val settingsRepository: SettingsRepository by lazy { SettingsRepositoryImpl(settingsDataStore) }
+
+    val productInfoRepository: ProductInfoRepository by lazy {
+        ProductInfoRepositoryImpl(OPEN_FOOD_FACTS_BASE_URL, openFoodFactsClient(callTimeoutMillis = 5_000))
+    }
+
+    fun searchProductByBarcodeUseCase() = SearchProductByBarcodeUseCase(productInfoRepository)
 
     // The inventory and the daily worker share the user's warning days through this use case.
     fun getInventoryUseCase() = GetInventoryUseCase(productRepository, warningDays = settingsRepository.warningDays)
