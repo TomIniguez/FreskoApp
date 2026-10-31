@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.freskoapp.R
 import com.example.freskoapp.domain.model.ExpirationStatus
+import com.example.freskoapp.presentation.theme.statusColors
 
 @StringRes
 fun ExpirationStatus.labelRes(): Int = when (this) {
@@ -21,8 +22,8 @@ fun ExpirationStatus.labelRes(): Int = when (this) {
 @Composable
 fun ExpirationStatus.color() = when (this) {
     ExpirationStatus.EXPIRED -> MaterialTheme.colorScheme.error
-    ExpirationStatus.EXPIRING_SOON -> MaterialTheme.colorScheme.tertiary
-    ExpirationStatus.FRESH -> MaterialTheme.colorScheme.primary
+    ExpirationStatus.EXPIRING_SOON -> MaterialTheme.statusColors.warning
+    ExpirationStatus.FRESH -> MaterialTheme.statusColors.success
 }
 
 fun ExpirationStatus.icon(): ImageVector = when (this) {

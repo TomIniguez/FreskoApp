@@ -1,6 +1,10 @@
 package com.example.freskoapp.presentation.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -14,11 +18,22 @@ import com.example.freskoapp.presentation.inventory.InventoryScreen
 import com.example.freskoapp.presentation.scanner.ScannerScreen
 import com.example.freskoapp.presentation.settings.SettingsScreen
 
+// Opaque slides, no fades: the default crossfade makes both screens translucent and lets the window show through
+// (the light flash). The new screen covers the old one, which moves only a quarter of the width (parallax).
+private val slideSpec = tween<IntOffset>(durationMillis = 300)
+
 // String routes on purpose: type-safe routes would need the kotlinx-serialization plugin.
 @Composable
 fun FreskoNavHost() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = INVENTORY_ROUTE) {
+    NavHost(
+        navController = navController,
+        startDestination = INVENTORY_ROUTE,
+        enterTransition = { slideInHorizontally(slideSpec) { it } },
+        exitTransition = { slideOutHorizontally(slideSpec) { -it / 4 } },
+        popEnterTransition = { slideInHorizontally(slideSpec) { -it / 4 } },
+        popExitTransition = { slideOutHorizontally(slideSpec) { it } },
+    ) {
         composable(
             route = INVENTORY_ROUTE,
             arguments = listOf(
