@@ -19,6 +19,7 @@ import com.example.freskoapp.presentation.common.ProductRemoval
 import com.example.freskoapp.presentation.navigation.INVENTORY_STATUS_ARG
 import com.example.freskoapp.presentation.navigation.clearRemoval
 import com.example.freskoapp.presentation.navigation.removalFlow
+import com.example.freskoapp.presentation.navigation.takeRemoval
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -54,7 +55,9 @@ class InventoryViewModel(
 
     fun onRemovalShown() = savedStateHandle.clearRemoval()
 
-    fun undoRemoval(removal: ProductRemoval) {
+    // Consumes the pending removal first, so calling it again (double tap, recomposition) does nothing.
+    fun undoRemoval() {
+        val removal = savedStateHandle.takeRemoval() ?: return
         viewModelScope.launch { restoreUnits(removal.id, removal.units, removal.status, removal.closed) }
     }
 

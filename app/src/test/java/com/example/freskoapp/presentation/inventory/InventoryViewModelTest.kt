@@ -83,10 +83,30 @@ class InventoryViewModelTest {
         repo.products.value = listOf(
             Product(1, "Leche", LocalDate.of(2026, 12, 1), 1, Location.HELADERA, ProductStatus.CONSUMED)
         )
-        val vm = viewModel()
+        val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true)) }
+        val vm = viewModel(handle = handle)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.items.collect {} }
         assertEquals(emptyList<Long>(), vm.items.value.map { it.product.id })
-        vm.undoRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true))
+        vm.undoRemoval()
         assertEquals(listOf(1L), vm.items.value.map { it.product.id })
+    }
+
+    @Test
+    fun undoIsSingleUse() = runTest {
+        repo.products.value = listOf(Product(1, "Leche", LocalDate.of(2026, 12, 1), 2, Location.HELADERA))
+        val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, false)) }
+        val vm = viewModel(handle = handle)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.pendingRemoval.collect {} }
+        vm.undoRemoval()
+        vm.undoRemoval()
+        assertEquals(3, repo.products.value.single().quantity) // units given back once, not twice
+        assertNull(vm.pendingRemoval.value)
+    }
+
+    @Test
+    fun undoWithNothingPendingDoesNothing() = runTest {
+        repo.products.value = listOf(Product(1, "Leche", LocalDate.of(2026, 12, 1), 2, Location.HELADERA))
+        viewModel().undoRemoval()
+        assertEquals(2, repo.products.value.single().quantity)
     }
 }

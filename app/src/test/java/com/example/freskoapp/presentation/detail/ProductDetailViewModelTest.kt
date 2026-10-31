@@ -6,6 +6,7 @@ import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.usecase.GetProductDetailUseCase
 import com.example.freskoapp.domain.usecase.CloseUnitsUseCase
+import com.example.freskoapp.domain.usecase.RestoreUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -73,6 +74,27 @@ class ProductDetailViewModelTest {
         assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, false), vm.state.value.removal)
         assertEquals(ProductStatus.ACTIVE, repo.getProduct(1).first()?.status)
         assertEquals(1, repo.getProduct(1).first()?.quantity)
+    }
+
+    @Test
+    fun discardGoesThroughTheSameCloseWithEveryUnit() = runTest {
+        val vm = viewModel(1)
+        observe(vm)
+        vm.markDiscarded()
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.DISCARDED, 2, true), vm.state.value.removal)
+        assertEquals(ProductStatus.DISCARDED, repo.getProduct(1).first()?.status)
+    }
+
+    @Test
+    fun singleUnitStillProducesARemovalThatUndoReopens() = runTest {
+        repo.products.value = listOf(Product(3, "Queso", LocalDate.of(2026, 12, 5), 1, Location.HELADERA))
+        val vm = viewModel(3)
+        observe(vm)
+        vm.markConsumed(1)
+        val removal = vm.state.value.removal!!
+        assertEquals(ProductRemoval(3, "Queso", ProductStatus.CONSUMED, 1, true), removal)
+        RestoreUnitsUseCase(repo)(removal.id, removal.units, removal.status, removal.closed)
+        assertEquals(ProductStatus.ACTIVE, repo.getProduct(3).first()?.status)
     }
 
     @Test

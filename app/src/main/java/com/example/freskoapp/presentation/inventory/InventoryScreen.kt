@@ -76,14 +76,14 @@ fun InventoryScreen(
     }
     val undoLabel = stringResource(R.string.undo)
     LaunchedEffect(removal) {
-        val r = removal ?: return@LaunchedEffect
+        if (removal == null) return@LaunchedEffect
         val result = snackbar.showSnackbar(
             message = removalMessage.orEmpty(),
             actionLabel = undoLabel,
             withDismissAction = true,
             duration = SnackbarDuration.Long,
         )
-        if (result == SnackbarResult.ActionPerformed) viewModel.undoRemoval(r)
+        if (result == SnackbarResult.ActionPerformed) viewModel.undoRemoval()
         // Cleared only now: clearing earlier changes the key, cancelling the effect and dismissing the snackbar.
         viewModel.onRemovalShown()
     }
