@@ -199,6 +199,7 @@ Prioridad de cobertura: la regla que calcula el estado de vencimiento, los casos
 - **Sin backend propio:** el problema no requiere cuentas ni sincronización, y mejora la privacidad.
 - **Estado de vencimiento con color, ícono y texto**, nunca solo color (accesibilidad).
 - **Carga manual de la fecha**, sin OCR en esta versión.
+- **Un solo umbral de aviso** (`warning_days` en DataStore, por defecto 3, rango 1–7) para el estado "Por vencer", el filtro y la notificación. El día exacto del vencimiento cuenta como "Por vencer", no como "Vencido"; "Vencido" es desde el día siguiente.
 
 ## Limitaciones conocidas
 
