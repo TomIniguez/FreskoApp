@@ -15,6 +15,7 @@ import com.example.freskoapp.presentation.common.ProductRemoval
 import com.example.freskoapp.presentation.navigation.PRODUCT_ID_ARG
 import com.example.freskoapp.presentation.navigation.clearProductUnavailable
 import com.example.freskoapp.presentation.navigation.productUnavailableFlow
+import com.example.freskoapp.presentation.navigation.putProductUnavailable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +28,7 @@ class ProductDetailViewModel(
     private val productId: Long,
     getDetail: GetProductDetailUseCase,
     private val closeUnits: CloseUnitsUseCase,
-    // Must be the handle Navigation gives this entry: the edit form posts its notice into it.
+    // This ViewModel's own handle, NOT the entry's: the edit form's notice arrives through onProductUnavailable.
     private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
     // Local state of the mark action; the product itself comes reactively from the repository.
@@ -43,6 +44,9 @@ class ProductDetailViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun onUnavailableShown() = savedStateHandle.clearProductUnavailable()
+
+    // Called by the route (see FreskoNavHost); kept in this handle so a pending notice survives process death.
+    fun onProductUnavailable() = savedStateHandle.putProductUnavailable()
 
     fun markConsumed(units: Int) = mark(ProductStatus.CONSUMED, units)
 

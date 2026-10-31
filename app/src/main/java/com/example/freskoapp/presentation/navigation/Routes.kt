@@ -86,9 +86,12 @@ const val SCANNED_BARCODE_KEY = "scanned_barcode"
 
 fun SavedStateHandle.putScannedBarcode(barcode: String) { this[SCANNED_BARCODE_KEY] = barcode }
 
-fun SavedStateHandle.scannedBarcodeFlow(): Flow<String?> = getStateFlow<String?>(SCANNED_BARCODE_KEY, null)
+// Single use: returns the code and clears it (null, not remove(), so the observed StateFlow stays attached).
+fun SavedStateHandle.takeScannedBarcode(): String? =
+    get<String>(SCANNED_BARCODE_KEY)?.also { this[SCANNED_BARCODE_KEY] = null as String? }
 
-fun SavedStateHandle.clearScannedBarcode() { this[SCANNED_BARCODE_KEY] = null as String? }
+// Single use for the one-shot Boolean notices: true once if it was set, then back to false.
+fun SavedStateHandle.takeFlag(key: String): Boolean? = if (get<Boolean>(key) == true) true.also { this[key] = false } else null
 
 // One-shot notice for the form: the scanner could not open a camera.
 const val CAMERA_UNAVAILABLE_KEY = "camera_unavailable"

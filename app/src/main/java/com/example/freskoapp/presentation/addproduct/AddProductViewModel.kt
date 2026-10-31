@@ -23,14 +23,12 @@ import com.example.freskoapp.presentation.navigation.NO_PRODUCT_ID
 import com.example.freskoapp.presentation.navigation.PRODUCT_ID_ARG
 import com.example.freskoapp.presentation.navigation.cameraUnavailableFlow
 import com.example.freskoapp.presentation.navigation.clearCameraUnavailable
-import com.example.freskoapp.presentation.navigation.clearScannedBarcode
-import com.example.freskoapp.presentation.navigation.scannedBarcodeFlow
+import com.example.freskoapp.presentation.navigation.putCameraUnavailable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -69,15 +67,16 @@ class AddProductViewModel(
                 )
             }
         }
-        viewModelScope.launch {
-            savedStateHandle.scannedBarcodeFlow().filterNotNull().collect { barcode ->
-                debugLog("form received code '$barcode' from SavedStateHandle (editing=${productId != null})")
-                // Single use: cleared before looking up, so rotation or a new VM never repeats it.
-                savedStateHandle.clearScannedBarcode()
-                if (productId == null) lookUp(barcode)
-            }
-        }
     }
+
+    // Both called by the route, which takes the scanner's result from the back stack entry (see FreskoNavHost).
+    fun onBarcodeScanned(barcode: String) {
+        debugLog("form received code '$barcode' (editing=${productId != null})")
+        if (productId == null) lookUp(barcode)
+    }
+
+    // Copied into this ViewModel's own handle so a notice not yet shown survives process death.
+    fun onCameraUnavailable() = savedStateHandle.putCameraUnavailable()
 
     fun onNameChange(name: String) = _state.update { it.copy(name = name) }
     fun onQuantityChange(quantity: String) = _state.update { it.copy(quantity = quantity.filter(Char::isDigit)) }

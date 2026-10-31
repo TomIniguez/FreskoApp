@@ -1,6 +1,7 @@
 package com.example.freskoapp.data.repository
 
 import com.example.freskoapp.data.remote.openFoodFactsClient
+import com.example.freskoapp.debugLogSink
 import com.example.freskoapp.domain.model.ProductInfo
 import com.example.freskoapp.domain.model.ProductInfoResult
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,7 @@ class ProductInfoRepositoryImplTest {
 
     @Before
     fun setUp() {
+        debugLogSink = {} // android.util.Log throws in JVM tests
         server.start()
         repo = ProductInfoRepositoryImpl(server.url("/").toString(), openFoodFactsClient(callTimeoutMillis = 200))
     }

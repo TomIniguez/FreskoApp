@@ -35,10 +35,6 @@ android {
     sourceSets {
         getByName("androidTest").assets.directories.add("$projectDir/schemas")
     }
-    // android.util.Log is a stub in JVM tests; the debug logs must not crash them.
-    testOptions {
-        unitTests.isReturnDefaultValues = true
-    }
     buildFeatures {
         compose = true
         buildConfig = true // BuildConfig.DEBUG gates the debug logs

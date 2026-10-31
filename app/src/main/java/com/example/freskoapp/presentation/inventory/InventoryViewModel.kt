@@ -20,6 +20,8 @@ import com.example.freskoapp.presentation.navigation.INVENTORY_STATUS_ARG
 import com.example.freskoapp.presentation.navigation.clearLotMerged
 import com.example.freskoapp.presentation.navigation.clearRemoval
 import com.example.freskoapp.presentation.navigation.lotMergedFlow
+import com.example.freskoapp.presentation.navigation.putLotMerged
+import com.example.freskoapp.presentation.navigation.putRemoval
 import com.example.freskoapp.presentation.navigation.removalFlow
 import com.example.freskoapp.presentation.navigation.takeRemoval
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,7 +37,7 @@ class InventoryViewModel(
     getInventory: GetInventoryUseCase,
     private val settings: SettingsRepository,
     private val restoreUnits: RestoreUnitsUseCase,
-    // Must be the handle Navigation gives this entry: the detail screen posts its result into it.
+    // This ViewModel's own handle, NOT the entry's: results from other screens arrive through onRemoval/onLotMerged.
     private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
     initialStatus: ExpirationStatus? = null,
 ) : ViewModel() {
@@ -61,6 +63,10 @@ class InventoryViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun onLotMergedShown() = savedStateHandle.clearLotMerged()
+
+    // Called by the route (see FreskoNavHost); kept in this handle so a pending notice survives process death.
+    fun onRemoval(removal: ProductRemoval) = savedStateHandle.putRemoval(removal)
+    fun onLotMerged() = savedStateHandle.putLotMerged()
 
     // Consumes the pending removal first, so calling it again (double tap, recomposition) does nothing.
     fun undoRemoval() {
