@@ -14,7 +14,7 @@ import com.example.freskoapp.domain.model.InventoryItem
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.repository.SettingsRepository
 import com.example.freskoapp.domain.usecase.GetInventoryUseCase
-import com.example.freskoapp.domain.usecase.RestoreProductUseCase
+import com.example.freskoapp.domain.usecase.RestoreUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
 import com.example.freskoapp.presentation.navigation.INVENTORY_STATUS_ARG
 import com.example.freskoapp.presentation.navigation.clearRemoval
@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 class InventoryViewModel(
     getInventory: GetInventoryUseCase,
     private val settings: SettingsRepository,
-    private val restoreProduct: RestoreProductUseCase,
+    private val restoreUnits: RestoreUnitsUseCase,
     // Must be the handle Navigation gives this entry: the detail screen posts its result into it.
     private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
     initialStatus: ExpirationStatus? = null,
@@ -55,7 +55,7 @@ class InventoryViewModel(
     fun onRemovalShown() = savedStateHandle.clearRemoval()
 
     fun undoRemoval(removal: ProductRemoval) {
-        viewModelScope.launch { restoreProduct(removal.id, removal.status) }
+        viewModelScope.launch { restoreUnits(removal.id, removal.units, removal.status, removal.closed) }
     }
 
     // Selecting the active chip again clears that dimension.
@@ -82,7 +82,7 @@ class InventoryViewModel(
                 InventoryViewModel(
                     app.getInventoryUseCase(),
                     app.settingsRepository,
-                    RestoreProductUseCase(app.productRepository),
+                    RestoreUnitsUseCase(app.productRepository),
                     savedStateHandle,
                     initialStatus,
                 )

@@ -8,7 +8,7 @@ import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.usecase.GetInventoryUseCase
-import com.example.freskoapp.domain.usecase.RestoreProductUseCase
+import com.example.freskoapp.domain.usecase.RestoreUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
 import com.example.freskoapp.presentation.navigation.putRemoval
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +35,7 @@ class InventoryViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun viewModel(initialStatus: ExpirationStatus? = null, handle: SavedStateHandle = SavedStateHandle()) =
-        InventoryViewModel(GetInventoryUseCase(repo), settings, RestoreProductUseCase(repo), handle, initialStatus)
+        InventoryViewModel(GetInventoryUseCase(repo), settings, RestoreUnitsUseCase(repo), handle, initialStatus)
 
     @Test
     fun initialStatusPreselectsFilter() {
@@ -71,7 +71,7 @@ class InventoryViewModelTest {
         val vm = viewModel(handle = handle)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.pendingRemoval.collect {} }
         assertNull(vm.pendingRemoval.value)
-        val removal = ProductRemoval(1, "Leche", ProductStatus.CONSUMED)
+        val removal = ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true)
         handle.putRemoval(removal)
         assertEquals(removal, vm.pendingRemoval.value)
         vm.onRemovalShown()
@@ -86,7 +86,7 @@ class InventoryViewModelTest {
         val vm = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.items.collect {} }
         assertEquals(emptyList<Long>(), vm.items.value.map { it.product.id })
-        vm.undoRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED))
+        vm.undoRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true))
         assertEquals(listOf(1L), vm.items.value.map { it.product.id })
     }
 }

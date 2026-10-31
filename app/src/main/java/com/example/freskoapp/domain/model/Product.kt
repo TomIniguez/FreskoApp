@@ -10,3 +10,15 @@ data class Product(
     val location: Location,
     val status: ProductStatus = ProductStatus.ACTIVE,
 )
+
+// Closes `units` of an active product. All units -> the record closes with its quantity kept (>= 1);
+// fewer -> it stays active with the rest. No schema change: the units live in `quantity`.
+fun Product.closeUnits(units: Int, newStatus: ProductStatus): Product {
+    require(newStatus != ProductStatus.ACTIVE)
+    require(units in 1..quantity)
+    return if (units == quantity) copy(status = newStatus) else copy(quantity = quantity - units)
+}
+
+// Inverse of closeUnits: reopens a closed record, or gives the units back to the one that stayed active.
+fun Product.reopenUnits(units: Int, closed: Boolean): Product =
+    if (closed) copy(status = ProductStatus.ACTIVE) else copy(quantity = quantity + units)

@@ -15,18 +15,28 @@ fun productDetailRoute(id: Long) = "product/$id"
 const val REMOVAL_ID_KEY = "removal_id"
 const val REMOVAL_NAME_KEY = "removal_name"
 const val REMOVAL_STATUS_KEY = "removal_status"
+const val REMOVAL_UNITS_KEY = "removal_units"
+const val REMOVAL_CLOSED_KEY = "removal_closed"
 
 // The id is written last because it is the trigger observed by removalFlow().
 fun SavedStateHandle.putRemoval(removal: ProductRemoval) {
     this[REMOVAL_NAME_KEY] = removal.name
     this[REMOVAL_STATUS_KEY] = removal.status.name
+    this[REMOVAL_UNITS_KEY] = removal.units
+    this[REMOVAL_CLOSED_KEY] = removal.closed
     this[REMOVAL_ID_KEY] = removal.id
 }
 
 fun SavedStateHandle.removalFlow(): Flow<ProductRemoval?> =
     getStateFlow<Long?>(REMOVAL_ID_KEY, null).map { id ->
         id?.let {
-            ProductRemoval(it, get<String>(REMOVAL_NAME_KEY) ?: "", ProductStatus.valueOf(get<String>(REMOVAL_STATUS_KEY)!!))
+            ProductRemoval(
+                it,
+                get<String>(REMOVAL_NAME_KEY) ?: "",
+                ProductStatus.valueOf(get<String>(REMOVAL_STATUS_KEY)!!),
+                get<Int>(REMOVAL_UNITS_KEY) ?: 1,
+                get<Boolean>(REMOVAL_CLOSED_KEY) ?: true,
+            )
         }
     }
 
@@ -35,4 +45,6 @@ fun SavedStateHandle.clearRemoval() {
     this[REMOVAL_ID_KEY] = null as Long?
     remove<String>(REMOVAL_NAME_KEY)
     remove<String>(REMOVAL_STATUS_KEY)
+    remove<Int>(REMOVAL_UNITS_KEY)
+    remove<Boolean>(REMOVAL_CLOSED_KEY)
 }

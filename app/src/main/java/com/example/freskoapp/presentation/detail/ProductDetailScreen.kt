@@ -15,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,13 +26,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -95,11 +104,19 @@ fun ProductDetailScreen(
 private fun DetailContent(
     item: InventoryItem,
     enabled: Boolean,
-    onConsumed: () -> Unit,
+    onConsumed: (Int) -> Unit,
     onDiscarded: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     val p = item.product
+    var showUnits by rememberSaveable { mutableStateOf(false) }
+    if (showUnits) {
+        UnitsDialog(
+            quantity = p.quantity,
+            onConfirm = { showUnits = false; onConsumed(it) },
+            onDismiss = { showUnits = false },
+        )
+    }
     Column(
         Modifier.padding(contentPadding).padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -118,7 +135,12 @@ private fun DetailContent(
         Text(stringResource(R.string.detail_quantity, p.quantity))
         Text(stringResource(R.string.detail_location, stringResource(p.location.labelRes())))
         Text(stringResource(R.string.detail_question), style = MaterialTheme.typography.titleMedium)
-        Button(onClick = onConsumed, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+        // One unit: nothing to choose, close it straight away.
+        Button(
+            onClick = { if (p.quantity == 1) onConsumed(1) else showUnits = true },
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Icon(Icons.Default.Done, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(stringResource(R.string.action_consumed), modifier = Modifier.padding(start = 8.dp))
         }
@@ -132,4 +154,33 @@ private fun DetailContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+// Picks how many units were consumed: starts at 1, "Todas" jumps to the whole quantity.
+@Composable
+private fun UnitsDialog(quantity: Int, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
+    var units by rememberSaveable { mutableIntStateOf(1) }
+    val decreaseCd = stringResource(R.string.units_decrease_cd)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.units_dialog_title)) },
+        text = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                IconButton(
+                    onClick = { units-- },
+                    enabled = units > 1,
+                    modifier = Modifier.semantics { contentDescription = decreaseCd },
+                ) {
+                    Text("−", style = MaterialTheme.typography.titleLarge)
+                }
+                Text(stringResource(R.string.units_of, units, quantity), style = MaterialTheme.typography.titleLarge)
+                IconButton(onClick = { units++ }, enabled = units < quantity) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.units_increase_cd))
+                }
+                TextButton(onClick = { units = quantity }) { Text(stringResource(R.string.units_all)) }
+            }
+        },
+        confirmButton = { TextButton(onClick = { onConfirm(units) }) { Text(stringResource(R.string.accept)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }

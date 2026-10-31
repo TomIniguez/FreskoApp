@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -67,10 +68,11 @@ fun InventoryScreen(
 
     // Resolved before the effect: stringResource can't be called inside it.
     val removalMessage = removal?.let {
-        stringResource(
-            if (it.status == ProductStatus.CONSUMED) R.string.removal_consumed else R.string.removal_discarded,
-            it.name,
-        )
+        when {
+            !it.closed -> pluralStringResource(R.plurals.removal_consumed_partial, it.units, it.name, it.units)
+            it.status == ProductStatus.CONSUMED -> stringResource(R.string.removal_consumed, it.name)
+            else -> stringResource(R.string.removal_discarded, it.name)
+        }
     }
     val undoLabel = stringResource(R.string.undo)
     LaunchedEffect(removal) {
