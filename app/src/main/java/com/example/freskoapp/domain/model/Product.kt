@@ -9,6 +9,7 @@ data class Product(
     val quantity: Int,
     val location: Location,
     val status: ProductStatus = ProductStatus.ACTIVE,
+    val createdAt: Long = 0, // epoch millis; 0 = unknown (rows created before v3)
 )
 
 // Closes `units` of an active product. All units -> the record closes with its quantity kept (>= 1);

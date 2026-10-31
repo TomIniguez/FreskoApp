@@ -37,4 +37,13 @@ class FakeProductRepository(initial: List<Product> = emptyList()) : ProductRepos
         products.value = products.value.map { if (it.id == expected.id) it.copy(quantity = new.quantity, status = new.status) else it }
         return true
     }
+
+    override suspend fun updateDetails(product: Product): Boolean {
+        val current = products.value.find { it.id == product.id }
+        if (current == null || current.status != ProductStatus.ACTIVE) return false
+        products.value = products.value.map {
+            if (it.id == product.id) it.copy(name = product.name, expirationDate = product.expirationDate, quantity = product.quantity, location = product.location) else it
+        }
+        return true
+    }
 }

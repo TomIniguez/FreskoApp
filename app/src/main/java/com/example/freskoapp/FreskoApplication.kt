@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import com.example.freskoapp.data.local.FreskoDatabase
 import com.example.freskoapp.data.local.MIGRATION_1_2
+import com.example.freskoapp.data.local.MIGRATION_2_3
 import com.example.freskoapp.data.preferences.SettingsRepositoryImpl
 import com.example.freskoapp.data.preferences.settingsDataStore
 import com.example.freskoapp.data.repository.ProductRepositoryImpl
@@ -19,7 +20,7 @@ class FreskoApplication : Application() {
     val productRepository: ProductRepository by lazy {
         ProductRepositoryImpl(
             Room.databaseBuilder(this, FreskoDatabase::class.java, "fresko.db")
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
                 .productDao()
         )

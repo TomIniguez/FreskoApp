@@ -10,7 +10,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 class AddProductUseCaseTest {
     private val repo = FakeProductRepository()
@@ -80,5 +83,14 @@ class AddProductUseCaseTest {
         repo.products.value = listOf(product().copy(id = 1, status = ProductStatus.CONSUMED))
         assertEquals(AddResult.CREATED, useCase(product()))
         assertEquals(listOf(ProductStatus.CONSUMED, ProductStatus.ACTIVE), repo.products.value.map { it.status })
+    }
+
+    @Test
+    fun createdAtComesFromTheClockAndAMergeKeepsTheOriginal() = runBlocking {
+        fun at(millis: Long) = AddProductUseCase(repo, Clock.fixed(Instant.ofEpochMilli(millis), ZoneOffset.UTC))
+        at(5_000)(product(quantity = 1))
+        at(9_000)(product(quantity = 2))
+        assertEquals(listOf(5_000L), repo.products.value.map { it.createdAt })
+        assertEquals(listOf(3), repo.products.value.map { it.quantity })
     }
 }

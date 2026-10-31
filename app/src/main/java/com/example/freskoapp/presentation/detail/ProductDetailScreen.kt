@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -49,6 +50,8 @@ import com.example.freskoapp.presentation.common.ProductRemoval
 import com.example.freskoapp.presentation.common.color
 import com.example.freskoapp.presentation.common.icon
 import com.example.freskoapp.presentation.common.labelRes
+import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -56,6 +59,7 @@ private val dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
+    onEdit: (Long) -> Unit,
     onBack: () -> Unit,
     onRemoved: (ProductRemoval) -> Unit,
     viewModel: ProductDetailViewModel = viewModel(factory = ProductDetailViewModel.Factory),
@@ -71,6 +75,15 @@ fun ProductDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_cd))
+                    }
+                },
+                actions = {
+                    // Closed products show "not available" instead; editing is only for active ones.
+                    val editable = state.item?.takeIf { !state.notAvailable && !state.isProcessing }
+                    if (editable != null) {
+                        IconButton(onClick = { onEdit(editable.product.id) }) {
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.action_edit))
+                        }
                     }
                 },
             )
@@ -133,6 +146,11 @@ private fun DetailContent(
         }
         Text(stringResource(R.string.detail_expires_on, p.expirationDate.format(dateFormat)))
         Text(stringResource(R.string.detail_quantity, p.quantity))
+        // Tells apart lots with the same expiration date; 0 = unknown (created before v3).
+        if (p.createdAt > 0) {
+            val createdOn = Instant.ofEpochMilli(p.createdAt).atZone(ZoneId.systemDefault()).toLocalDate()
+            Text(stringResource(R.string.detail_created_on, createdOn.format(dateFormat)))
+        }
         Text(stringResource(R.string.detail_location, stringResource(p.location.labelRes())))
         Text(stringResource(R.string.detail_question), style = MaterialTheme.typography.titleMedium)
         // One unit: nothing to choose, close it straight away.

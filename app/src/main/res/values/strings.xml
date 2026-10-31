@@ -16,7 +16,10 @@
     <string name="detail_quantity">Cantidad: %1$d</string>
     <string name="detail_location">Ubicación: %1$s</string>
     <string name="detail_question">¿Qué hiciste con este producto?</string>
+    <string name="action_edit">Editar</string>
     <string name="action_consumed">Consumido</string>
+    <string name="edit_product_title">Editar producto</string>
+    <string name="detail_created_on">Cargado el %1$s</string>
     <string name="action_discarded">Descartado</string>
     <string name="detail_undo_hint">Si te equivocás, vas a poder deshacerlo.</string>
     <string name="detail_not_available">Este producto ya no está en tu inventario.</string>

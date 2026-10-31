@@ -13,6 +13,7 @@ fun ProductEntity.toDomain() = Product(
     quantity = quantity,
     location = Location.valueOf(location),
     status = ProductStatus.valueOf(status),
+    createdAt = createdAt,
 )
 
 fun Product.toEntity() = ProductEntity(
@@ -22,4 +23,5 @@ fun Product.toEntity() = ProductEntity(
     quantity = quantity,
     location = location.name,
     status = status.name,
+    createdAt = createdAt,
 )

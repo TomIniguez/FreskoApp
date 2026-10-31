@@ -11,6 +11,14 @@ const val PRODUCT_DETAIL_ROUTE = "product/{productId}"
 
 fun productDetailRoute(id: Long) = "product/$id"
 
+// Same form for registering and editing: productId is optional, -1 means "new".
+const val ADD_PRODUCT_ROUTE = "add_product?productId={productId}"
+const val NO_PRODUCT_ID = -1L
+
+fun addProductRoute() = "add_product"
+
+fun editProductRoute(id: Long) = "add_product?productId=$id"
+
 // Result of the detail screen, kept in the Inventory entry's SavedStateHandle (survives rotation and process death).
 const val REMOVAL_ID_KEY = "removal_id"
 const val REMOVAL_NAME_KEY = "removal_name"
