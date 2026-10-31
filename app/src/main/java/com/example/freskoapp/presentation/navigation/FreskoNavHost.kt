@@ -1,6 +1,7 @@
 package com.example.freskoapp.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -10,6 +11,7 @@ import androidx.navigation.navDeepLink
 import com.example.freskoapp.presentation.addproduct.AddProductScreen
 import com.example.freskoapp.presentation.detail.ProductDetailScreen
 import com.example.freskoapp.presentation.inventory.InventoryScreen
+import com.example.freskoapp.presentation.scanner.ScannerScreen
 import com.example.freskoapp.presentation.settings.SettingsScreen
 
 // String routes on purpose: type-safe routes would need the kotlinx-serialization plugin.
@@ -64,6 +66,20 @@ fun FreskoNavHost() {
                     navController.previousBackStackEntry?.savedStateHandle?.putProductUnavailable()
                     navController.popBackStack()
                 },
+                onScan = { navController.navigate(SCANNER_ROUTE) },
+            )
+        }
+        composable(SCANNER_ROUTE) {
+            // Hand the outcome to the form below and leave, at most once: a late callback must not pop the form too.
+            fun returnToForm(result: SavedStateHandle.() -> Unit) {
+                if (navController.currentDestination?.route != SCANNER_ROUTE) return
+                navController.previousBackStackEntry?.savedStateHandle?.result()
+                navController.popBackStack()
+            }
+            ScannerScreen(
+                onScanned = { code -> returnToForm { putScannedBarcode(code) } },
+                onCameraUnavailable = { returnToForm { putCameraUnavailable() } },
+                onBack = { returnToForm { } },
             )
         }
         composable("settings") {
