@@ -10,6 +10,7 @@ import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.usecase.GetInventoryUseCase
 import com.example.freskoapp.domain.usecase.RestoreUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
+import com.example.freskoapp.presentation.navigation.putLotMerged
 import com.example.freskoapp.presentation.navigation.putRemoval
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -108,5 +109,17 @@ class InventoryViewModelTest {
         repo.products.value = listOf(Product(1, "Leche", LocalDate.of(2026, 12, 1), 2, Location.HELADERA))
         viewModel().undoRemoval()
         assertEquals(2, repo.products.value.single().quantity)
+    }
+
+    @Test
+    fun lotMergedNoticeIsSingleUse() = runTest {
+        val handle = SavedStateHandle()
+        val vm = viewModel(handle = handle)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.lotMerged.collect {} }
+        assertEquals(false, vm.lotMerged.value)
+        handle.putLotMerged()
+        assertEquals(true, vm.lotMerged.value)
+        vm.onLotMergedShown()
+        assertEquals(false, vm.lotMerged.value)
     }
 }

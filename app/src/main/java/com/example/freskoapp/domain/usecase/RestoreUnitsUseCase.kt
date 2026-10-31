@@ -13,6 +13,7 @@ class RestoreUnitsUseCase(private val repository: ProductRepository) {
         require(units >= 1)
         val product = repository.getProduct(id).first() ?: return false
         if (product.status != (if (closed) status else ProductStatus.ACTIVE)) return false
+        // Known: reopening may leave two active records with the same name/date/location; not merged (editing doesn't merge either).
         return repository.update(product, product.reopenUnits(units, closed))
     }
 }

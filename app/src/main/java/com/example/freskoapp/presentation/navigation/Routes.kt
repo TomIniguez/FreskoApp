@@ -52,3 +52,12 @@ fun SavedStateHandle.clearRemoval() {
     remove<Int>(REMOVAL_UNITS_KEY)
     remove<Boolean>(REMOVAL_CLOSED_KEY)
 }
+
+// One-shot notice for the Inventory: the product just registered was added to an existing lot.
+const val LOT_MERGED_KEY = "lot_merged"
+
+fun SavedStateHandle.putLotMerged() { this[LOT_MERGED_KEY] = true }
+
+fun SavedStateHandle.lotMergedFlow(): Flow<Boolean> = getStateFlow(LOT_MERGED_KEY, false)
+
+fun SavedStateHandle.clearLotMerged() { this[LOT_MERGED_KEY] = false }

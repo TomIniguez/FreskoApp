@@ -75,6 +75,14 @@ fun InventoryScreen(
         }
     }
     val undoLabel = stringResource(R.string.undo)
+    val lotMerged by viewModel.lotMerged.collectAsStateWithLifecycle()
+    val lotMergedMessage = stringResource(R.string.lot_merged)
+    LaunchedEffect(lotMerged) {
+        if (!lotMerged) return@LaunchedEffect
+        snackbar.showSnackbar(lotMergedMessage)
+        // Single use: cleared once shown so rotation or coming back does not show it again.
+        viewModel.onLotMergedShown()
+    }
     LaunchedEffect(removal) {
         if (removal == null) return@LaunchedEffect
         val result = snackbar.showSnackbar(

@@ -17,7 +17,9 @@ import com.example.freskoapp.domain.usecase.GetInventoryUseCase
 import com.example.freskoapp.domain.usecase.RestoreUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
 import com.example.freskoapp.presentation.navigation.INVENTORY_STATUS_ARG
+import com.example.freskoapp.presentation.navigation.clearLotMerged
 import com.example.freskoapp.presentation.navigation.clearRemoval
+import com.example.freskoapp.presentation.navigation.lotMergedFlow
 import com.example.freskoapp.presentation.navigation.removalFlow
 import com.example.freskoapp.presentation.navigation.takeRemoval
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -54,6 +56,11 @@ class InventoryViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun onRemovalShown() = savedStateHandle.clearRemoval()
+
+    val lotMerged: StateFlow<Boolean> = savedStateHandle.lotMergedFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    fun onLotMergedShown() = savedStateHandle.clearLotMerged()
 
     // Consumes the pending removal first, so calling it again (double tap, recomposition) does nothing.
     fun undoRemoval() {

@@ -51,13 +51,13 @@ private val dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 @Composable
 fun AddProductScreen(
     onBack: () -> Unit,
-    onSaved: () -> Unit,
+    onSaved: (merged: Boolean) -> Unit,
     viewModel: AddProductViewModel = viewModel(factory = AddProductViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.saved) { if (state.saved) onSaved() }
+    LaunchedEffect(state.saved) { if (state.saved) onSaved(state.merged) }
 
     Scaffold(
         topBar = {

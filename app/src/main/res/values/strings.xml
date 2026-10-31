@@ -23,6 +23,7 @@
     <string name="removal_consumed">Marcaste %1$s como consumido</string>
     <string name="removal_discarded">Marcaste %1$s como descartado</string>
     <string name="undo">Deshacer</string>
+    <string name="lot_merged">Se sumó a un registro existente</string>
     <string name="units_dialog_title">¿Cuántas unidades consumiste?</string>
     <string name="units_of">%1$d de %2$d</string>
     <string name="units_all">Todas</string>
