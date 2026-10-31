@@ -1,11 +1,13 @@
 package com.example.freskoapp.presentation.addproduct
 
+import com.example.freskoapp.domain.FakeProductInfoRepository
 import com.example.freskoapp.domain.FakeProductRepository
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.usecase.AddProductUseCase
 import com.example.freskoapp.domain.usecase.GetProductDetailUseCase
+import com.example.freskoapp.domain.usecase.SearchProductByBarcodeUseCase
 import com.example.freskoapp.domain.usecase.UpdateProductUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -30,7 +32,8 @@ class AddProductViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun editVm(id: Long = 1) = AddProductViewModel(
-        AddProductUseCase(repo), UpdateProductUseCase(repo), GetProductDetailUseCase(repo), id,
+        AddProductUseCase(repo), UpdateProductUseCase(repo), GetProductDetailUseCase(repo),
+        SearchProductByBarcodeUseCase(FakeProductInfoRepository()), id,
     )
 
     @Test

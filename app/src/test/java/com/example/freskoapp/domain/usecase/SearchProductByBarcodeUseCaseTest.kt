@@ -37,9 +37,20 @@ class SearchProductByBarcodeUseCaseTest {
     }
 
     @Test
-    fun anyBarcodeIsSearchedWithoutValidation() = runBlocking {
-        assertEquals(ProductInfoResult.NotFound, useCase("not-a-barcode"))
-        assertEquals(listOf("not-a-barcode"), repo.searched)
+    fun invalidBarcodesAreNotFoundWithoutCallingTheRepository() = runBlocking {
+        repo.result = ProductInfoResult.Found(ProductInfo("Nutella", null))
+        // "..", too short, 15 digits, Arabic-Indic digits, and a space-padded code (no trimming).
+        listOf("..", "123", "123456789012345", "١٢٣٤٥٦٧٨", " 12345678").forEach {
+            assertEquals(it, ProductInfoResult.NotFound, useCase(it))
+        }
+        assertEquals(0, repo.calls)
+    }
+
+    @Test
+    fun eightAndFourteenDigitBarcodesReachTheRepository() = runBlocking {
+        useCase("12345678")
+        useCase("12345678901234")
+        assertEquals(listOf("12345678", "12345678901234"), repo.searched)
     }
 
     @Test

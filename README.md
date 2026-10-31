@@ -105,6 +105,8 @@ UI (Compose) → ViewModel → Caso de uso → Repositorio → Fuente local (Roo
 
 Los datos del usuario se generan y se guardan solo en el teléfono (Room). Open Food Facts se consulta únicamente para sugerir nombres y su resultado no se guarda como dato maestro.
 
+**Datos de productos:** Open Food Facts contributors, bajo licencia [ODbL](https://opendatacommons.org/licenses/odbl/1-0/). El crédito también aparece en Ajustes.
+
 ## Estructura del proyecto
 
 ```
@@ -164,7 +166,7 @@ No hace falta configurar claves ni variables de entorno: la API de Open Food Fac
 
 | Permiso | Motivo | Cuándo se pide |
 |---|---|---|
-| `CAMERA` | Escanear códigos de barras. | Al entrar al escáner, no al iniciar la app. |
+| `CAMERA` | Escanear códigos de barras. | Al tocar "Escanear código" en el formulario, no al iniciar la app. |
 | `POST_NOTIFICATIONS` (Android 13+) | Mostrar los avisos de vencimiento. | Desde la tarjeta del Inventario y desde Ajustes, con una explicación previa, hasta que exista el onboarding. |
 | `INTERNET` | Consultar Open Food Facts. | No requiere confirmación del usuario. |
 
@@ -206,6 +208,8 @@ Prioridad de cobertura: la regla que calcula el estado de vencimiento, los casos
 - Los datos viven solo en un dispositivo: no hay respaldo ni sincronización entre teléfonos.
 - La fecha de vencimiento se ingresa a mano.
 - El autocompletado depende de que el producto exista en Open Food Facts.
+- Los códigos UPC-E se consultan en su forma comprimida de 8 dígitos, así que probablemente no se encuentren; en ese caso se carga a mano.
+- Los campos del formulario no sobreviven si Android cierra la app en segundo plano para liberar memoria: al volver, el formulario empieza vacío.
 - Los avisos se envían a las 09:00 (hora fija, todavía no configurable) y no son exactos: Android puede demorarlos por el ahorro de batería (Doze).
 - Solo Android.
 

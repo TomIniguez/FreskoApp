@@ -79,6 +79,8 @@ fun SettingsScreen(
             } else {
                 NotificationPermissionCard(permission, onDismiss = null)
             }
+            // Required by the ODbL license of the product data used to suggest names.
+            Text(stringResource(R.string.settings_attribution), style = MaterialTheme.typography.bodySmall)
         }
     }
 }

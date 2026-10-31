@@ -78,3 +78,23 @@ fun SavedStateHandle.putProductUnavailable() { this[PRODUCT_UNAVAILABLE_KEY] = t
 fun SavedStateHandle.productUnavailableFlow(): Flow<Boolean> = getStateFlow(PRODUCT_UNAVAILABLE_KEY, false)
 
 fun SavedStateHandle.clearProductUnavailable() { this[PRODUCT_UNAVAILABLE_KEY] = false }
+
+const val SCANNER_ROUTE = "scanner"
+
+// Single-use result of the scanner, kept in the form entry's SavedStateHandle until the form consumes it.
+const val SCANNED_BARCODE_KEY = "scanned_barcode"
+
+fun SavedStateHandle.putScannedBarcode(barcode: String) { this[SCANNED_BARCODE_KEY] = barcode }
+
+fun SavedStateHandle.scannedBarcodeFlow(): Flow<String?> = getStateFlow<String?>(SCANNED_BARCODE_KEY, null)
+
+fun SavedStateHandle.clearScannedBarcode() { this[SCANNED_BARCODE_KEY] = null as String? }
+
+// One-shot notice for the form: the scanner could not open a camera.
+const val CAMERA_UNAVAILABLE_KEY = "camera_unavailable"
+
+fun SavedStateHandle.putCameraUnavailable() { this[CAMERA_UNAVAILABLE_KEY] = true }
+
+fun SavedStateHandle.cameraUnavailableFlow(): Flow<Boolean> = getStateFlow(CAMERA_UNAVAILABLE_KEY, false)
+
+fun SavedStateHandle.clearCameraUnavailable() { this[CAMERA_UNAVAILABLE_KEY] = false }
