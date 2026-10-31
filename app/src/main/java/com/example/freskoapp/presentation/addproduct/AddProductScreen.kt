@@ -114,7 +114,7 @@ fun AddProductScreen(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (!state.isEditing) BarcodeScanSection(state.lookup, onScan = onScan, onRetry = viewModel::retry)
+            if (!state.isEditing) BarcodeScanSection(state.barcode, state.lookup, onScan = onScan, onRetry = viewModel::retry)
             OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
                 Text(state.expirationDate?.format(dateFormat) ?: stringResource(R.string.pick_date))
             }
@@ -166,7 +166,7 @@ private enum class CameraPermissionNotice { DENIED, PERMANENTLY_DENIED }
 
 // "Escanear código" plus the lookup status; nothing here blocks the rest of the form.
 @Composable
-private fun BarcodeScanSection(lookup: LookupState, onScan: () -> Unit, onRetry: () -> Unit) {
+private fun BarcodeScanSection(barcode: String?, lookup: LookupState, onScan: () -> Unit, onRetry: () -> Unit) {
     val context = LocalContext.current
     val activity = LocalActivity.current
     val hasCamera = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) }
@@ -181,6 +181,7 @@ private fun BarcodeScanSection(lookup: LookupState, onScan: () -> Unit, onRetry:
         if (granted) onScan()
     }
 
+    LookupStatus(barcode, lookup, onRetry)
     if (hasCamera) {
         OutlinedButton(
             onClick = {
@@ -203,7 +204,12 @@ private fun BarcodeScanSection(lookup: LookupState, onScan: () -> Unit, onRetry:
         }
         null -> {}
     }
+}
 
+// Right under the name field: which code was scanned and what the lookup made of it.
+@Composable
+private fun LookupStatus(barcode: String?, lookup: LookupState, onRetry: () -> Unit) {
+    if (barcode != null) Text(stringResource(R.string.scanned_code, barcode))
     when (lookup) {
         LookupState.Idle -> {}
         LookupState.Loading -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

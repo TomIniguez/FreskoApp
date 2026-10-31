@@ -57,6 +57,7 @@
     <string name="notification_channel_name">Avisos de vencimiento</string>
     <string name="notification_channel_description">Aviso diario de productos por vencer</string>
     <string name="scan_barcode">Escanear código</string>
+    <string name="scanned_code">Código: %1$s</string>
     <string name="scanner_title">Escanear código</string>
     <string name="scanner_hint">Apuntá la cámara al código de barras del producto</string>
     <string name="torch_on_cd">Encender linterna</string>

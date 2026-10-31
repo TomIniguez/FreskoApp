@@ -2,6 +2,7 @@ package com.example.freskoapp.data.repository
 
 import com.example.freskoapp.data.mapper.toDomain
 import com.example.freskoapp.data.remote.OpenFoodFactsApi
+import com.example.freskoapp.debugLog
 import com.example.freskoapp.domain.model.ProductInfoResult
 import com.example.freskoapp.domain.repository.ProductInfoRepository
 import kotlinx.serialization.json.Json
@@ -27,6 +28,7 @@ class ProductInfoRepositoryImpl(
 
     override suspend fun search(barcode: String): ProductInfoResult = try {
         val response = api.getProduct(barcode)
+        debugLog("HTTP ${response.code()} for '$barcode'")
         when {
             response.code() == 404 -> ProductInfoResult.NotFound
             !response.isSuccessful -> ProductInfoResult.ServerError

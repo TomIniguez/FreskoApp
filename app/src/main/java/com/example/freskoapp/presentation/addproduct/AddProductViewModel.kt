@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.freskoapp.FreskoApplication
+import com.example.freskoapp.debugLog
 import com.example.freskoapp.domain.model.AddResult
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
@@ -53,8 +54,6 @@ class AddProductViewModel(
 
     fun onCameraUnavailableShown() = savedStateHandle.clearCameraUnavailable()
 
-    // Kept only in memory for "Reintentar"; the barcode is never stored with the product.
-    private var lastBarcode: String? = null
     private var lookupJob: Job? = null
 
     init {
@@ -72,6 +71,7 @@ class AddProductViewModel(
         }
         viewModelScope.launch {
             savedStateHandle.scannedBarcodeFlow().filterNotNull().collect { barcode ->
+                debugLog("form received code '$barcode' from SavedStateHandle (editing=${productId != null})")
                 // Single use: cleared before looking up, so rotation or a new VM never repeats it.
                 savedStateHandle.clearScannedBarcode()
                 if (productId == null) lookUp(barcode)
@@ -85,16 +85,17 @@ class AddProductViewModel(
     fun onLocationChange(location: Location) = _state.update { it.copy(location = location) }
 
     fun retry() {
-        lastBarcode?.let(::lookUp)
+        _state.value.barcode?.let(::lookUp)
     }
 
     private fun lookUp(barcode: String) {
-        lastBarcode = barcode
         // A newer scan wins: the older answer must not land on top of it.
         lookupJob?.cancel()
-        _state.update { it.copy(lookup = LookupState.Loading) }
+        debugLog("lookup started for '$barcode'")
+        _state.update { it.copy(barcode = barcode, lookup = LookupState.Loading) }
         lookupJob = viewModelScope.launch {
             val result = searchByBarcode(barcode)
+            debugLog("lookup result for '$barcode': $result")
             _state.update {
                 when (result) {
                     // Only fill a blank name: never overwrite what the user already typed.

@@ -14,6 +14,7 @@ data class AddProductUiState(
     val merged: Boolean = false, // only meaningful once saved: the quantity went into an existing lot
     val notAvailable: Boolean = false, // edit mode: the product is gone or no longer active, the screen leaves
     val lookup: LookupState = LookupState.Idle,
+    val barcode: String? = null, // last scanned code, for display and "Reintentar"; never saved with the product
 ) {
     // The barcode lookup never gates saving: manual entry must always work.
     val canSave get() = !isSaving && name.isNotBlank() && (quantity.toIntOrNull() ?: 0) > 0 && expirationDate != null
