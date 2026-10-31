@@ -8,6 +8,7 @@ import com.example.freskoapp.domain.usecase.GetProductDetailUseCase
 import com.example.freskoapp.domain.usecase.CloseUnitsUseCase
 import com.example.freskoapp.domain.usecase.RestoreUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
+import com.example.freskoapp.presentation.navigation.putProductUnavailable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -123,5 +124,17 @@ class ProductDetailViewModelTest {
         assertNull(vm.state.value.removal)
         assertEquals(ProductStatus.DISCARDED, repo.getProduct(2).first()?.status)
         assertNotNull(vm.state.value.item)
+    }
+
+    @Test
+    fun unavailableNoticeIsSingleUse() = runTest {
+        val handle = androidx.lifecycle.SavedStateHandle()
+        val vm = ProductDetailViewModel(1, GetProductDetailUseCase(repo), CloseUnitsUseCase(repo), handle)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.unavailableNotice.collect {} }
+        assertFalse(vm.unavailableNotice.value)
+        handle.putProductUnavailable()
+        assertTrue(vm.unavailableNotice.value)
+        vm.onUnavailableShown()
+        assertFalse(vm.unavailableNotice.value)
     }
 }

@@ -1,5 +1,6 @@
 package com.example.freskoapp.presentation.detail
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
@@ -12,6 +13,8 @@ import com.example.freskoapp.domain.usecase.GetProductDetailUseCase
 import com.example.freskoapp.domain.usecase.CloseUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
 import com.example.freskoapp.presentation.navigation.PRODUCT_ID_ARG
+import com.example.freskoapp.presentation.navigation.clearProductUnavailable
+import com.example.freskoapp.presentation.navigation.productUnavailableFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +27,8 @@ class ProductDetailViewModel(
     private val productId: Long,
     getDetail: GetProductDetailUseCase,
     private val closeUnits: CloseUnitsUseCase,
+    // Must be the handle Navigation gives this entry: the edit form posts its notice into it.
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
     // Local state of the mark action; the product itself comes reactively from the repository.
     private data class Action(val isProcessing: Boolean = false, val removal: ProductRemoval? = null)
@@ -33,6 +38,11 @@ class ProductDetailViewModel(
     val state: StateFlow<ProductDetailUiState> = combine(getDetail(productId), action) { item, action ->
         ProductDetailUiState(isLoading = false, item = item, isProcessing = action.isProcessing, removal = action.removal)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProductDetailUiState())
+
+    val unavailableNotice: StateFlow<Boolean> = savedStateHandle.productUnavailableFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    fun onUnavailableShown() = savedStateHandle.clearProductUnavailable()
 
     fun markConsumed(units: Int) = mark(ProductStatus.CONSUMED, units)
 
@@ -63,8 +73,9 @@ class ProductDetailViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as FreskoApplication
-                val productId = checkNotNull(createSavedStateHandle().get<Long>(PRODUCT_ID_ARG))
-                ProductDetailViewModel(productId, app.getProductDetailUseCase(), CloseUnitsUseCase(app.productRepository))
+                val savedStateHandle = createSavedStateHandle()
+                val productId = checkNotNull(savedStateHandle.get<Long>(PRODUCT_ID_ARG))
+                ProductDetailViewModel(productId, app.getProductDetailUseCase(), CloseUnitsUseCase(app.productRepository), savedStateHandle)
             }
         }
     }

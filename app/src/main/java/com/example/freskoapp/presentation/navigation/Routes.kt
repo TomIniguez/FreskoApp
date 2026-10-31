@@ -69,3 +69,12 @@ fun SavedStateHandle.putLotMerged() { this[LOT_MERGED_KEY] = true }
 fun SavedStateHandle.lotMergedFlow(): Flow<Boolean> = getStateFlow(LOT_MERGED_KEY, false)
 
 fun SavedStateHandle.clearLotMerged() { this[LOT_MERGED_KEY] = false }
+
+// One-shot notice for the screen below the edit form: the product vanished or was closed while editing.
+const val PRODUCT_UNAVAILABLE_KEY = "product_unavailable"
+
+fun SavedStateHandle.putProductUnavailable() { this[PRODUCT_UNAVAILABLE_KEY] = true }
+
+fun SavedStateHandle.productUnavailableFlow(): Flow<Boolean> = getStateFlow(PRODUCT_UNAVAILABLE_KEY, false)
+
+fun SavedStateHandle.clearProductUnavailable() { this[PRODUCT_UNAVAILABLE_KEY] = false }

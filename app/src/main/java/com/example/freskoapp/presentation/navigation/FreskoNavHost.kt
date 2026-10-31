@@ -59,6 +59,11 @@ fun FreskoNavHost() {
                     if (merged) navController.getBackStackEntry(INVENTORY_ROUTE).savedStateHandle.putLotMerged()
                     navController.popBackStack()
                 },
+                onUnavailable = {
+                    // Edit mode: the entry below is the product detail, which shows the notice.
+                    navController.previousBackStackEntry?.savedStateHandle?.putProductUnavailable()
+                    navController.popBackStack()
+                },
             )
         }
         composable("settings") {

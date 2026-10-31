@@ -26,12 +26,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -68,7 +71,18 @@ fun ProductDetailScreen(
 
     LaunchedEffect(state.removal) { state.removal?.let(onRemoved) }
 
+    val snackbar = remember { SnackbarHostState() }
+    val unavailable by viewModel.unavailableNotice.collectAsStateWithLifecycle()
+    val unavailableMessage = stringResource(R.string.product_unavailable)
+    LaunchedEffect(unavailable) {
+        if (!unavailable) return@LaunchedEffect
+        snackbar.showSnackbar(unavailableMessage)
+        // Single use: cleared once shown so rotation or coming back does not show it again.
+        viewModel.onUnavailableShown()
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.product_detail_title)) },
