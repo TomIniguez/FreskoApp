@@ -5,7 +5,8 @@ import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.usecase.GetProductDetailUseCase
-import com.example.freskoapp.domain.usecase.MarkProductUseCase
+import com.example.freskoapp.domain.usecase.CloseUnitsUseCase
+import com.example.freskoapp.domain.usecase.RestoreUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -39,7 +40,7 @@ class ProductDetailViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun viewModel(id: Long) =
-        ProductDetailViewModel(id, GetProductDetailUseCase(repo), MarkProductUseCase(repo))
+        ProductDetailViewModel(id, GetProductDetailUseCase(repo), CloseUnitsUseCase(repo))
 
     // WhileSubscribed: collect so the stateIn upstream is active.
     private fun kotlinx.coroutines.test.TestScope.observe(vm: ProductDetailViewModel) {
@@ -59,17 +60,48 @@ class ProductDetailViewModelTest {
     fun markConsumedSetsRemovalAndUpdatesRepository() = runTest {
         val vm = viewModel(1)
         observe(vm)
-        vm.markConsumed()
-        assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED), vm.state.value.removal)
+        vm.markConsumed(2)
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 2, true), vm.state.value.removal)
         assertEquals(ProductStatus.CONSUMED, repo.getProduct(1).first()?.status)
         assertFalse(vm.state.value.notAvailable)
+    }
+
+    @Test
+    fun partialConsumeKeepsTheProductActiveAndRecordsHowToUndo() = runTest {
+        val vm = viewModel(1)
+        observe(vm)
+        vm.markConsumed(1)
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, false), vm.state.value.removal)
+        assertEquals(ProductStatus.ACTIVE, repo.getProduct(1).first()?.status)
+        assertEquals(1, repo.getProduct(1).first()?.quantity)
+    }
+
+    @Test
+    fun discardGoesThroughTheSameCloseWithEveryUnit() = runTest {
+        val vm = viewModel(1)
+        observe(vm)
+        vm.markDiscarded()
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.DISCARDED, 2, true), vm.state.value.removal)
+        assertEquals(ProductStatus.DISCARDED, repo.getProduct(1).first()?.status)
+    }
+
+    @Test
+    fun singleUnitStillProducesARemovalThatUndoReopens() = runTest {
+        repo.products.value = listOf(Product(3, "Queso", LocalDate.of(2026, 12, 5), 1, Location.HELADERA))
+        val vm = viewModel(3)
+        observe(vm)
+        vm.markConsumed(1)
+        val removal = vm.state.value.removal!!
+        assertEquals(ProductRemoval(3, "Queso", ProductStatus.CONSUMED, 1, true), removal)
+        RestoreUnitsUseCase(repo)(removal.id, removal.units, removal.status, removal.closed)
+        assertEquals(ProductStatus.ACTIVE, repo.getProduct(3).first()?.status)
     }
 
     @Test
     fun secondCallDoesNothing() = runTest {
         val vm = viewModel(1)
         observe(vm)
-        vm.markConsumed()
+        vm.markConsumed(2)
         vm.markDiscarded()
         assertEquals(ProductStatus.CONSUMED, repo.getProduct(1).first()?.status)
         assertEquals(ProductStatus.CONSUMED, vm.state.value.removal?.status)
@@ -87,7 +119,7 @@ class ProductDetailViewModelTest {
         val vm = viewModel(2)
         observe(vm)
         assertTrue(vm.state.value.notAvailable)
-        vm.markConsumed()
+        vm.markConsumed(1)
         assertNull(vm.state.value.removal)
         assertEquals(ProductStatus.DISCARDED, repo.getProduct(2).first()?.status)
         assertNotNull(vm.state.value.item)

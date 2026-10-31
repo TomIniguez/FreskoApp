@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.freskoapp.FreskoApplication
 import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.usecase.GetProductDetailUseCase
-import com.example.freskoapp.domain.usecase.MarkProductUseCase
+import com.example.freskoapp.domain.usecase.CloseUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
 import com.example.freskoapp.presentation.navigation.PRODUCT_ID_ARG
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 class ProductDetailViewModel(
     private val productId: Long,
     getDetail: GetProductDetailUseCase,
-    private val markProduct: MarkProductUseCase,
+    private val closeUnits: CloseUnitsUseCase,
 ) : ViewModel() {
     // Local state of the mark action; the product itself comes reactively from the repository.
     private data class Action(val isProcessing: Boolean = false, val removal: ProductRemoval? = null)
@@ -34,11 +34,14 @@ class ProductDetailViewModel(
         ProductDetailUiState(isLoading = false, item = item, isProcessing = action.isProcessing, removal = action.removal)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProductDetailUiState())
 
-    fun markConsumed() = mark(ProductStatus.CONSUMED)
+    fun markConsumed(units: Int) = mark(ProductStatus.CONSUMED, units)
 
-    fun markDiscarded() = mark(ProductStatus.DISCARDED)
+    // Discarding always takes every unit; only "Consumido" lets you pick how many.
+    fun markDiscarded() {
+        state.value.item?.let { mark(ProductStatus.DISCARDED, it.product.quantity) }
+    }
 
-    private fun mark(status: ProductStatus) {
+    private fun mark(status: ProductStatus, units: Int) {
         val current = state.value
         val item = current.item ?: return
         if (current.isLoading || current.isProcessing || current.removal != null) return
@@ -46,10 +49,12 @@ class ProductDetailViewModel(
         // Set before launching so a fast double tap can't mark the product twice.
         action.update { it.copy(isProcessing = true) }
         viewModelScope.launch {
-            val changed = markProduct(productId, status)
+            val result = closeUnits(productId, units, status)
             action.update {
-                if (changed) Action(isProcessing = true, removal = ProductRemoval(productId, item.product.name, status))
-                else Action()
+                if (result != null) {
+                    val closed = result.status != ProductStatus.ACTIVE
+                    Action(isProcessing = true, removal = ProductRemoval(productId, item.product.name, status, units, closed))
+                } else Action()
             }
         }
     }
@@ -59,7 +64,7 @@ class ProductDetailViewModel(
             initializer {
                 val app = this[APPLICATION_KEY] as FreskoApplication
                 val productId = checkNotNull(createSavedStateHandle().get<Long>(PRODUCT_ID_ARG))
-                ProductDetailViewModel(productId, app.getProductDetailUseCase(), MarkProductUseCase(app.productRepository))
+                ProductDetailViewModel(productId, app.getProductDetailUseCase(), CloseUnitsUseCase(app.productRepository))
             }
         }
     }

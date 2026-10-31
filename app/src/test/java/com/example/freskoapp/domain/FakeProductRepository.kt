@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
-// In-memory repository that mirrors the DAO: active-only list ordered by date, compare-and-set status changes.
+// In-memory repository that mirrors the DAO: active-only list ordered by date, compare-and-set updates.
 class FakeProductRepository(initial: List<Product> = emptyList()) : ProductRepository {
     val products = MutableStateFlow(initial)
 
@@ -21,10 +21,10 @@ class FakeProductRepository(initial: List<Product> = emptyList()) : ProductRepos
         products.value += product.copy(id = nextId)
     }
 
-    override suspend fun changeStatus(id: Long, from: ProductStatus, to: ProductStatus): Boolean {
-        val current = products.value.find { it.id == id }
-        if (current == null || current.status != from) return false
-        products.value = products.value.map { if (it.id == id) it.copy(status = to) else it }
+    override suspend fun update(expected: Product, new: Product): Boolean {
+        val current = products.value.find { it.id == expected.id }
+        if (current == null || current.quantity != expected.quantity || current.status != expected.status) return false
+        products.value = products.value.map { if (it.id == expected.id) it.copy(quantity = new.quantity, status = new.status) else it }
         return true
     }
 }

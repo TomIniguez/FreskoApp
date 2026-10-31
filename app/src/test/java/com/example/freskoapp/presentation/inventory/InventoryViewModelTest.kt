@@ -8,7 +8,7 @@ import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.domain.usecase.GetInventoryUseCase
-import com.example.freskoapp.domain.usecase.RestoreProductUseCase
+import com.example.freskoapp.domain.usecase.RestoreUnitsUseCase
 import com.example.freskoapp.presentation.common.ProductRemoval
 import com.example.freskoapp.presentation.navigation.putRemoval
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +35,7 @@ class InventoryViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun viewModel(initialStatus: ExpirationStatus? = null, handle: SavedStateHandle = SavedStateHandle()) =
-        InventoryViewModel(GetInventoryUseCase(repo), settings, RestoreProductUseCase(repo), handle, initialStatus)
+        InventoryViewModel(GetInventoryUseCase(repo), settings, RestoreUnitsUseCase(repo), handle, initialStatus)
 
     @Test
     fun initialStatusPreselectsFilter() {
@@ -71,7 +71,7 @@ class InventoryViewModelTest {
         val vm = viewModel(handle = handle)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.pendingRemoval.collect {} }
         assertNull(vm.pendingRemoval.value)
-        val removal = ProductRemoval(1, "Leche", ProductStatus.CONSUMED)
+        val removal = ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true)
         handle.putRemoval(removal)
         assertEquals(removal, vm.pendingRemoval.value)
         vm.onRemovalShown()
@@ -83,10 +83,30 @@ class InventoryViewModelTest {
         repo.products.value = listOf(
             Product(1, "Leche", LocalDate.of(2026, 12, 1), 1, Location.HELADERA, ProductStatus.CONSUMED)
         )
-        val vm = viewModel()
+        val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true)) }
+        val vm = viewModel(handle = handle)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.items.collect {} }
         assertEquals(emptyList<Long>(), vm.items.value.map { it.product.id })
-        vm.undoRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED))
+        vm.undoRemoval()
         assertEquals(listOf(1L), vm.items.value.map { it.product.id })
+    }
+
+    @Test
+    fun undoIsSingleUse() = runTest {
+        repo.products.value = listOf(Product(1, "Leche", LocalDate.of(2026, 12, 1), 2, Location.HELADERA))
+        val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, false)) }
+        val vm = viewModel(handle = handle)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.pendingRemoval.collect {} }
+        vm.undoRemoval()
+        vm.undoRemoval()
+        assertEquals(3, repo.products.value.single().quantity) // units given back once, not twice
+        assertNull(vm.pendingRemoval.value)
+    }
+
+    @Test
+    fun undoWithNothingPendingDoesNothing() = runTest {
+        repo.products.value = listOf(Product(1, "Leche", LocalDate.of(2026, 12, 1), 2, Location.HELADERA))
+        viewModel().undoRemoval()
+        assertEquals(2, repo.products.value.single().quantity)
     }
 }

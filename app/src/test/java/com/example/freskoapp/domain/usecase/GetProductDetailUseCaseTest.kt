@@ -43,7 +43,7 @@ class GetProductDetailUseCaseTest {
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
             GetProductDetailUseCase(repo, clock = clock)(1).collect { emissions.add(it?.product?.status) }
         }
-        MarkProductUseCase(repo)(1, ProductStatus.CONSUMED)
+        CloseUnitsUseCase(repo)(1, 1, ProductStatus.CONSUMED)
         job.cancel()
         assertEquals(listOf(ProductStatus.ACTIVE, ProductStatus.CONSUMED), emissions)
     }

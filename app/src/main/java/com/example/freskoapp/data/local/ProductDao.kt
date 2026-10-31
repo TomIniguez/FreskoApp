@@ -16,7 +16,7 @@ interface ProductDao {
     @Insert
     suspend fun insert(product: ProductEntity)
 
-    // Returns the number of rows changed: 0 if the product isn't in the `from` status.
-    @Query("UPDATE products SET status = :to WHERE id = :id AND status = :from")
-    suspend fun updateStatus(id: Long, from: String, to: String): Int
+    // Returns the number of rows changed: 0 if quantity or status no longer match the expected ones.
+    @Query("UPDATE products SET quantity = :newQuantity, status = :newStatus WHERE id = :id AND quantity = :oldQuantity AND status = :oldStatus")
+    suspend fun updateIfUnchanged(id: Long, oldQuantity: Int, oldStatus: String, newQuantity: Int, newStatus: String): Int
 }
