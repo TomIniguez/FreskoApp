@@ -6,6 +6,7 @@ import com.example.freskoapp.domain.repository.ProductInfoRepository
 class FakeProductInfoRepository(var result: ProductInfoResult = ProductInfoResult.NotFound) : ProductInfoRepository {
     var error: Throwable? = null
     val searched = mutableListOf<String>()
+    val calls get() = searched.size
 
     override suspend fun search(barcode: String): ProductInfoResult {
         searched += barcode
