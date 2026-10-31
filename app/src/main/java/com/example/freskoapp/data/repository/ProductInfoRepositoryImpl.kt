@@ -26,22 +26,31 @@ class ProductInfoRepositoryImpl(
         .build()
         .create(OpenFoodFactsApi::class.java)
 
-    override suspend fun search(barcode: String): ProductInfoResult = try {
-        val response = api.getProduct(barcode)
-        debugLog("HTTP ${response.code()} for '$barcode'")
-        when {
-            response.code() == 404 -> ProductInfoResult.NotFound
-            !response.isSuccessful -> ProductInfoResult.ServerError
-            else -> response.body()?.let { dto -> dto.toDomain()?.let { ProductInfoResult.Found(it) } ?: ProductInfoResult.NotFound }
-                ?: ProductInfoResult.ServerError
+    override suspend fun search(barcode: String): ProductInfoResult {
+        val start = System.nanoTime()
+        fun elapsedMs() = (System.nanoTime() - start) / 1_000_000
+        fun logException(e: Exception) = debugLog("'$barcode' threw ${e.javaClass.name}: ${e.message} after ${elapsedMs()} ms")
+        return try {
+            val response = api.getProduct(barcode)
+            debugLog("HTTP ${response.code()} for '$barcode' after ${elapsedMs()} ms")
+            when {
+                response.code() == 404 -> ProductInfoResult.NotFound
+                !response.isSuccessful -> ProductInfoResult.ServerError
+                else -> response.body()?.let { dto -> dto.toDomain()?.let { ProductInfoResult.Found(it) } ?: ProductInfoResult.NotFound }
+                    ?: ProductInfoResult.ServerError
+            }
+        } catch (e: CancellationException) {
+            logException(e)
+            throw e
+        } catch (e: InterruptedIOException) { // callTimeout and SocketTimeoutException both land here
+            logException(e)
+            ProductInfoResult.Timeout
+        } catch (e: IOException) { // also a body cut off mid-read: indistinguishable from a dropped connection
+            logException(e)
+            ProductInfoResult.Offline
+        } catch (e: IllegalArgumentException) { // SerializationException is one: malformed or empty JSON
+            logException(e)
+            ProductInfoResult.ServerError
         }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: InterruptedIOException) { // callTimeout and SocketTimeoutException both land here
-        ProductInfoResult.Timeout
-    } catch (e: IOException) { // also a body cut off mid-read: indistinguishable from a dropped connection
-        ProductInfoResult.Offline
-    } catch (e: IllegalArgumentException) { // SerializationException is one: malformed or empty JSON
-        ProductInfoResult.ServerError
     }
 }

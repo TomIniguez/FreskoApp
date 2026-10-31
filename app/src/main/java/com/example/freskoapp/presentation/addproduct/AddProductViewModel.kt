@@ -53,6 +53,7 @@ class AddProductViewModel(
     fun onCameraUnavailableShown() = savedStateHandle.clearCameraUnavailable()
 
     private var lookupJob: Job? = null
+    private var scanCount = 0 // debug log only: shows whether one scan is delivered more than once
 
     init {
         if (productId != null) viewModelScope.launch {
@@ -71,7 +72,7 @@ class AddProductViewModel(
 
     // Both called by the route, which takes the scanner's result from the back stack entry (see FreskoNavHost).
     fun onBarcodeScanned(barcode: String) {
-        debugLog("form received code '$barcode' (editing=${productId != null})")
+        debugLog("onBarcodeScanned #${++scanCount} '$barcode' (editing=${productId != null})")
         if (productId == null) lookUp(barcode)
     }
 
@@ -89,6 +90,7 @@ class AddProductViewModel(
 
     private fun lookUp(barcode: String) {
         // A newer scan wins: the older answer must not land on top of it.
+        if (lookupJob?.isActive == true) debugLog("cancelling the lookup for '${_state.value.barcode}', replaced by '$barcode'")
         lookupJob?.cancel()
         debugLog("lookup started for '$barcode'")
         _state.update { it.copy(barcode = barcode, lookup = LookupState.Loading) }
