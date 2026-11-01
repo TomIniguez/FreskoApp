@@ -1,5 +1,15 @@
 package com.example.freskoapp.presentation.settings
 
+import java.time.LocalTime
+import androidx.compose.ui.semantics.Role
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.clickable
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.DrawableRes
@@ -44,7 +54,6 @@ import com.example.freskoapp.presentation.common.Stepper
 import com.example.freskoapp.presentation.common.WarningBanner
 import com.example.freskoapp.presentation.common.rememberNotificationPermissionState
 import com.example.freskoapp.presentation.theme.statusColors
-import com.example.freskoapp.work.ExpirationCheckScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,6 +68,15 @@ fun SettingsScreen(
 ) {
     val warningDays by viewModel.warningDays.collectAsStateWithLifecycle()
     val summary by viewModel.pilotSummary.collectAsStateWithLifecycle()
+    val alertTime by viewModel.alertTime.collectAsStateWithLifecycle()
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    if (showTimePicker) {
+        AlertTimeDialog(
+            initial = alertTime,
+            onConfirm = { showTimePicker = false; viewModel.onAlertTimeSelected(it) },
+            onDismiss = { showTimePicker = false },
+        )
+    }
     val permission = rememberNotificationPermissionState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -114,15 +132,12 @@ fun SettingsScreen(
                     else StatusIcon(R.drawable.ic_alert_circle, MaterialTheme.statusColors.warning)
                 }
                 Divider()
-                // Read-only: the daily check runs at a fixed time (ExpirationCheckScheduler).
                 SettingRow(
                     title = stringResource(R.string.settings_alert_time),
                     caption = stringResource(R.string.settings_alert_time_caption),
+                    onClick = { showTimePicker = true },
                 ) {
-                    Text(
-                        ExpirationCheckScheduler.NOTIFICATION_TIME.format(DateTimeFormatter.ofPattern("H:mm")),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
+                    Text(alertTime.format(DateTimeFormatter.ofPattern("H:mm")), style = MaterialTheme.typography.titleMedium)
                 }
             }
             SectionLabel(stringResource(R.string.settings_section_privacy))
@@ -147,8 +162,9 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingRow(title: String, caption: String, trailing: @Composable () -> Unit = {}) {
-    Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun SettingRow(title: String, caption: String, onClick: (() -> Unit)? = null, trailing: @Composable () -> Unit = {}) {
+    val tappable = if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier
+    Row(tappable.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f).padding(end = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(caption, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -199,4 +215,18 @@ private suspend fun Context.sharePilotCsv(csv: String) {
         .putExtra(Intent.EXTRA_STREAM, uri)
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     startActivity(Intent.createChooser(send, getString(R.string.pilot_export)))
+}
+
+// 24-hour clock, as Argentina reads times ("9:00", "21:30").
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AlertTimeDialog(initial: LocalTime, onConfirm: (LocalTime) -> Unit, onDismiss: () -> Unit) {
+    val state = rememberTimePickerState(initialHour = initial.hour, initialMinute = initial.minute, is24Hour = true)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_alert_time)) },
+        text = { TimePicker(state = state) },
+        confirmButton = { TextButton(onClick = { onConfirm(LocalTime.of(state.hour, state.minute)) }) { Text(stringResource(R.string.accept)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }

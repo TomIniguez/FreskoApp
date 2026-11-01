@@ -1,5 +1,7 @@
 package com.example.freskoapp.data.preferences
 
+import java.time.LocalTime
+import com.example.freskoapp.domain.repository.DEFAULT_ALERT_TIME
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -54,5 +56,20 @@ class SettingsRepositoryImplTest {
         assertEquals(false, repo.notificationPromptDismissed.first())
         repo.dismissNotificationPrompt()
         assertEquals(true, repo.notificationPromptDismissed.first())
+    }
+
+    @Test
+    fun alertTimeDefaultsToNineThenPersists() = runTest {
+        val repo = SettingsRepositoryImpl(dataStore())
+        assertEquals(DEFAULT_ALERT_TIME, repo.alertTime.first())
+        repo.setAlertTime(LocalTime.of(21, 45))
+        assertEquals(LocalTime.of(21, 45), repo.alertTime.first())
+    }
+
+    @Test
+    fun corruptAlertTimeFallsBackToTheDefault() = runTest {
+        val store = dataStore()
+        store.edit { it[intPreferencesKey("alert_minute_of_day")] = 5_000 }
+        assertEquals(DEFAULT_ALERT_TIME, SettingsRepositoryImpl(store).alertTime.first())
     }
 }

@@ -12,6 +12,10 @@ import com.example.freskoapp.domain.repository.EventRepository
 import com.example.freskoapp.domain.repository.SettingsRepository
 import com.example.freskoapp.domain.usecase.DEFAULT_WARNING_DAYS
 import com.example.freskoapp.domain.usecase.SetWarningDaysUseCase
+import com.example.freskoapp.domain.usecase.SetAlertTimeUseCase
+import com.example.freskoapp.domain.repository.DEFAULT_ALERT_TIME
+import com.example.freskoapp.work.ExpirationCheckScheduler
+import java.time.LocalTime
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -23,12 +27,20 @@ class SettingsViewModel(
     settings: SettingsRepository,
     private val setWarningDays: SetWarningDaysUseCase,
     private val events: EventRepository,
+    private val setAlertTime: SetAlertTimeUseCase,
 ) : ViewModel() {
     val warningDays: StateFlow<Int> = settings.warningDays
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DEFAULT_WARNING_DAYS)
 
     val pilotSummary: StateFlow<PilotSummary> = combine(events.observeAll(), settings.warningDays, PilotSummary::from)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PilotSummary())
+
+    val alertTime: StateFlow<LocalTime> = settings.alertTime
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DEFAULT_ALERT_TIME)
+
+    fun onAlertTimeSelected(time: LocalTime) {
+        viewModelScope.launch { setAlertTime(time) }
+    }
 
     fun onWarningDaysSelected(days: Int) {
         viewModelScope.launch { setWarningDays(days) }
@@ -40,7 +52,12 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as FreskoApplication
-                SettingsViewModel(app.settingsRepository, SetWarningDaysUseCase(app.settingsRepository), app.eventRepository)
+                SettingsViewModel(
+                    app.settingsRepository,
+                    SetWarningDaysUseCase(app.settingsRepository),
+                    app.eventRepository,
+                    SetAlertTimeUseCase(app.settingsRepository) { ExpirationCheckScheduler.reschedule(app, it) },
+                )
             }
         }
     }

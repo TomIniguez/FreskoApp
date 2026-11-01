@@ -29,9 +29,17 @@ import com.example.freskoapp.domain.usecase.SearchProductByBarcodeUseCase
 import com.example.freskoapp.domain.usecase.UpdateProductUseCase
 import com.example.freskoapp.work.ExpirationCheckScheduler
 import com.example.freskoapp.work.ExpirationNotifier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 // Manual dependency injection: ViewModel factories and the worker read this from the Application.
 class FreskoApplication : Application() {
+    // Lives as long as the process; for work that must not depend on a screen.
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     // No destructive fallback: a missing migration must crash in testing, never wipe the pilot data.
     private val database by lazy {
         Room.databaseBuilder(this, FreskoDatabase::class.java, "fresko.db")
@@ -71,6 +79,7 @@ class FreskoApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         ExpirationNotifier.createChannel(this)
-        ExpirationCheckScheduler.schedule(this)
+        // Off the main thread: the stored alert time comes from DataStore. KEEP makes it a no-op once scheduled.
+        appScope.launch { ExpirationCheckScheduler.schedule(this@FreskoApplication, settingsRepository.alertTime.first()) }
     }
 }
