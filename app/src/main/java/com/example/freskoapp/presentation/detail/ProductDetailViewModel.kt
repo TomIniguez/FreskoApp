@@ -3,7 +3,7 @@ package com.example.freskoapp.presentation.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.createSavedStateHandle
+import com.example.freskoapp.presentation.navigation.navEntrySavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -73,7 +73,7 @@ class ProductDetailViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as FreskoApplication
-                val savedStateHandle = createSavedStateHandle()
+                val savedStateHandle = navEntrySavedStateHandle()
                 val productId = checkNotNull(savedStateHandle.get<Long>(PRODUCT_ID_ARG))
                 ProductDetailViewModel(productId, app.getProductDetailUseCase(), CloseUnitsUseCase(app.productRepository), savedStateHandle)
             }

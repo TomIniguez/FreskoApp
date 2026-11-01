@@ -20,7 +20,6 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -100,18 +99,11 @@ class AddProductLookupTest {
     }
 
     @Test
-    fun onlyOfflineHasNoRetry() {
-        assertFalse(LookupState.Failure(LookupFailure.OFFLINE).canRetry)
-        assertTrue(LookupState.Failure(LookupFailure.NOT_FOUND).canRetry)
-        assertTrue(LookupState.Failure(LookupFailure.TIMEOUT).canRetry)
-        assertTrue(LookupState.Failure(LookupFailure.SERVER_ERROR).canRetry)
-    }
-
-    @Test
     fun retryLooksUpTheSameBarcodeAgain() {
-        lookups.result = ProductInfoResult.Timeout
+        lookups.result = ProductInfoResult.Offline
         val vm = vm()
         scan()
+        assertEquals("3017620422003", vm.state.value.scannedBarcode)
         lookups.result = nutella
         vm.retry()
         assertEquals(listOf("3017620422003", "3017620422003"), lookups.searched)

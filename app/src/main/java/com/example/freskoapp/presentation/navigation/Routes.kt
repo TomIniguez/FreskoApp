@@ -1,10 +1,18 @@
 package com.example.freskoapp.presentation.navigation
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.navigation.NavBackStackEntry
 import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.presentation.common.ProductRemoval
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+
+// The entry's own handle (args + results other screens put on it). createSavedStateHandle() would give each
+// ViewModel a separate handle that never sees those results.
+fun CreationExtras.navEntrySavedStateHandle(): SavedStateHandle =
+    (checkNotNull(this[VIEW_MODEL_STORE_OWNER_KEY]) as NavBackStackEntry).savedStateHandle
 
 const val PRODUCT_ID_ARG = "productId"
 const val PRODUCT_DETAIL_ROUTE = "product/{productId}"

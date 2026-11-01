@@ -3,7 +3,7 @@ package com.example.freskoapp.presentation.inventory
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.createSavedStateHandle
+import com.example.freskoapp.presentation.navigation.navEntrySavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -85,7 +85,7 @@ class InventoryViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as FreskoApplication
-                val savedStateHandle = createSavedStateHandle()
+                val savedStateHandle = navEntrySavedStateHandle()
                 // Set by the notification deep link (fresko://inventory?status=...).
                 val initialStatus = savedStateHandle.get<String>(INVENTORY_STATUS_ARG)
                     ?.let { runCatching { ExpirationStatus.valueOf(it) }.getOrNull() }
