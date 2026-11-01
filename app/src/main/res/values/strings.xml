@@ -156,8 +156,8 @@
         <item quantity="other">%d días</item>
     </plurals>
     <plurals name="notification_expiring_title">
-        <item quantity="one">%d producto por vencer</item>
-        <item quantity="other">%d productos por vencer</item>
+        <item quantity="one">Hay %d producto por vencer</item>
+        <item quantity="other">Hay %d productos por vencer</item>
     </plurals>
     <plurals name="expiry_expired_days_ago">
         <item quantity="one">Vencido hace %1$d día</item>
@@ -200,5 +200,11 @@
     <plurals name="units_count">
         <item quantity="one">%1$d unidad</item>
         <item quantity="other">%1$d unidades</item>
+    </plurals>
+    <string name="notification_body_today">%1$s vence hoy. Tocá para ver qué consumir primero.</string>
+    <string name="notification_body_tomorrow">%1$s vence mañana. Tocá para ver qué consumir primero.</string>
+    <plurals name="notification_body_in_days">
+        <item quantity="one">%1$s vence en %2$d día. Tocá para ver qué consumir primero.</item>
+        <item quantity="other">%1$s vence en %2$d días. Tocá para ver qué consumir primero.</item>
     </plurals>
 </resources>
