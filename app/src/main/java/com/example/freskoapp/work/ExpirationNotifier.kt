@@ -16,6 +16,8 @@ import com.example.freskoapp.domain.model.ExpirationStatus
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.presentation.common.canPostNotifications
 import com.example.freskoapp.presentation.navigation.inventoryDeepLink
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 object ExpirationNotifier {
     const val CHANNEL_ID = "expiration_alerts"
@@ -59,17 +61,32 @@ object ExpirationNotifier {
             context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
-        val names = products.joinToString { it.name }
+        val body = bodyText(context, soonestToExpire(products, LocalDate.now()))
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_fresko)
             .setContentTitle(
                 context.resources.getQuantityString(R.plurals.notification_expiring_title, products.size, products.size)
             )
-            .setContentText(names)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(names))
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setContentIntent(contentIntent)
             .setAutoCancel(true)
             .build()
         manager.notify(NOTIFICATION_ID, notification)
     }
+}
+
+// The product the alert names: the one closest to expiring (first by name on a tie, so the text is stable).
+internal data class SoonestToExpire(val name: String, val daysLeft: Int)
+
+internal fun soonestToExpire(products: List<Product>, today: LocalDate): SoonestToExpire {
+    val first = products.minWith(compareBy<Product>({ it.expirationDate }, { it.name }))
+    return SoonestToExpire(first.name, ChronoUnit.DAYS.between(today, first.expirationDate).toInt().coerceAtLeast(0))
+}
+
+// "Yogur natural vence mañana. Tocá para ver qué consumir primero."
+private fun bodyText(context: Context, soonest: SoonestToExpire): String = when (soonest.daysLeft) {
+    0 -> context.getString(R.string.notification_body_today, soonest.name)
+    1 -> context.getString(R.string.notification_body_tomorrow, soonest.name)
+    else -> context.resources.getQuantityString(R.plurals.notification_body_in_days, soonest.daysLeft, soonest.name, soonest.daysLeft)
 }
