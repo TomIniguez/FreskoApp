@@ -15,9 +15,12 @@ data class AddProductUiState(
     val notAvailable: Boolean = false, // edit mode: the product is gone or no longer active, the screen leaves
     val lookup: LookupState = LookupState.Idle,
     val scannedBarcode: String? = null, // shown on screen and reused by "Reintentar"; never stored with the product
+    val showErrors: Boolean = false, // set by a save attempt with missing fields; errors then show next to each field
 ) {
     // The barcode lookup never gates saving: manual entry must always work.
     val canSave get() = !isSaving && name.isNotBlank() && (quantity.toIntOrNull() ?: 0) > 0 && expirationDate != null
+    val nameError get() = showErrors && name.isBlank()
+    val dateError get() = showErrors && expirationDate == null
 }
 
 // Name lookup for a scanned barcode; it only ever suggests the name.

@@ -1,5 +1,8 @@
 package com.example.freskoapp.presentation.addproduct
 
+import androidx.lifecycle.SavedStateHandle
+import com.example.freskoapp.presentation.navigation.START_SCAN_ARG
+
 import com.example.freskoapp.domain.FakeEventRepository
 import com.example.freskoapp.domain.NoTransaction
 import com.example.freskoapp.domain.FakeProductInfoRepository
@@ -74,5 +77,44 @@ class AddProductViewModelTest {
     @Test
     fun unknownProductIdIsUnavailable() {
         assertTrue(editVm(99).state.value.notAvailable)
+    }
+
+    private fun newVm(handle: SavedStateHandle = SavedStateHandle()) = AddProductViewModel(
+        AddProductUseCase(repo, FakeEventRepository(), NoTransaction), UpdateProductUseCase(repo, FakeEventRepository(), NoTransaction), GetProductDetailUseCase(repo),
+        SearchProductByBarcodeUseCase(FakeProductInfoRepository()), null, handle,
+    )
+
+    @Test
+    fun savingWithMissingFieldsShowsTheErrorsAndSavesNothing() {
+        val vm = newVm()
+        assertFalse(vm.state.value.nameError)
+        vm.save()
+        assertTrue(vm.state.value.nameError)
+        assertTrue(vm.state.value.dateError)
+        assertFalse(vm.state.value.saved)
+        vm.onNameChange("Yerba")
+        assertFalse(vm.state.value.nameError) // fixed fields drop their error right away
+        assertTrue(vm.state.value.dateError)
+        assertEquals(1, repo.products.value.size)
+    }
+
+    @Test
+    fun quantityStepperNeverGoesBelowOne() {
+        val vm = newVm()
+        vm.onQuantityStep(-1)
+        assertEquals("1", vm.state.value.quantity)
+        vm.onQuantityStep(1)
+        vm.onQuantityStep(1)
+        assertEquals("3", vm.state.value.quantity)
+    }
+
+    @Test
+    fun startScanFromTheSheetIsTakenOnlyOnce() {
+        val handle = SavedStateHandle(mapOf(START_SCAN_ARG to true))
+        val vm = newVm(handle)
+        assertTrue(vm.takeStartScan())
+        assertFalse(vm.takeStartScan())
+        assertFalse(newVm(handle).takeStartScan()) // a recreated form (rotation) doesn't reopen the camera
+        assertFalse(newVm().takeStartScan())
     }
 }

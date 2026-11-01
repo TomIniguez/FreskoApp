@@ -20,6 +20,7 @@ import com.example.freskoapp.domain.usecase.SearchProductByBarcodeUseCase
 import com.example.freskoapp.domain.usecase.UpdateProductUseCase
 import com.example.freskoapp.presentation.navigation.NO_PRODUCT_ID
 import com.example.freskoapp.presentation.navigation.PRODUCT_ID_ARG
+import com.example.freskoapp.presentation.navigation.START_SCAN_ARG
 import com.example.freskoapp.presentation.navigation.cameraUnavailableFlow
 import com.example.freskoapp.presentation.navigation.clearCameraUnavailable
 import com.example.freskoapp.presentation.navigation.clearScannedBarcode
@@ -86,6 +87,19 @@ class AddProductViewModel(
     fun onDateSelected(date: LocalDate) = _state.update { it.copy(expirationDate = date) }
     fun onLocationChange(location: Location) = _state.update { it.copy(location = location) }
 
+    // − / + stepper: never below 1 (a product has at least one unit).
+    fun onQuantityStep(delta: Int) = _state.update {
+        it.copy(quantity = ((it.quantity.toIntOrNull() ?: 1) + delta).coerceIn(1, MAX_QUANTITY).toString())
+    }
+
+    // True once if the user chose "Escanear" in the add sheet: the form then opens the scanner by itself.
+    // Cleared in the entry's state so coming back from the scanner or rotating doesn't open it again.
+    fun takeStartScan(): Boolean {
+        if (savedStateHandle.get<Boolean>(START_SCAN_ARG) != true || productId != null) return false
+        savedStateHandle[START_SCAN_ARG] = false
+        return true
+    }
+
     fun retry() {
         _state.value.scannedBarcode?.let(::lookUp)
     }
@@ -115,7 +129,11 @@ class AddProductViewModel(
     fun save() {
         val s = _state.value
         val date = s.expirationDate
-        if (!s.canSave || date == null) return
+        if (!s.canSave || date == null) {
+            // Missing fields: the button stays tappable and the errors show next to each field.
+            if (!s.isSaving) _state.update { it.copy(showErrors = true) }
+            return
+        }
         // Set before launching so a fast double tap can't save twice.
         _state.update { it.copy(isSaving = true) }
         viewModelScope.launch {
@@ -136,6 +154,8 @@ class AddProductViewModel(
     }
 
     companion object {
+        const val MAX_QUANTITY = 999
+
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as FreskoApplication
