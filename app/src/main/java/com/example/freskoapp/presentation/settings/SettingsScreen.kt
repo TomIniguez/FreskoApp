@@ -1,5 +1,16 @@
 package com.example.freskoapp.presentation.settings
 
+import android.content.Context
+import android.content.Intent
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import com.example.freskoapp.domain.model.PilotSummary
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,7 +50,10 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val warningDays by viewModel.warningDays.collectAsStateWithLifecycle()
+    val summary by viewModel.pilotSummary.collectAsStateWithLifecycle()
     val permission = rememberNotificationPermissionState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -79,8 +93,41 @@ fun SettingsScreen(
             } else {
                 NotificationPermissionCard(permission, onDismiss = null)
             }
+            PilotSection(summary, onExport = {
+                scope.launch { context.sharePilotCsv(viewModel.pilotCsv()) }
+            })
             // Required by the ODbL license of the product data used to suggest names.
             Text(stringResource(R.string.settings_attribution), style = MaterialTheme.typography.bodySmall)
         }
     }
+}
+
+@Composable
+private fun PilotSection(summary: PilotSummary, onExport: () -> Unit) {
+    Text(stringResource(R.string.pilot_title), style = MaterialTheme.typography.titleMedium)
+    Text(stringResource(R.string.pilot_added, summary.addedByScan, summary.addedManually))
+    Text(
+        stringResource(
+            R.string.pilot_median_add_time,
+            summary.medianAddTimeMs?.let { stringResource(R.string.pilot_seconds, (it + 500) / 1000) }
+                ?: stringResource(R.string.pilot_no_data),
+        )
+    )
+    Text(stringResource(R.string.pilot_units_consumed, summary.unitsConsumed))
+    Text(stringResource(R.string.pilot_units_discarded, summary.unitsDiscarded))
+    Text(stringResource(R.string.pilot_units_consumed_expiring, summary.unitsConsumedExpiringSoon))
+    OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.pilot_export)) }
+}
+
+// Writes the CSV to the app cache (overwritten on every export) and opens the share sheet through the FileProvider.
+private suspend fun Context.sharePilotCsv(csv: String) {
+    val file = withContext(Dispatchers.IO) {
+        File(cacheDir, "pilot").apply { mkdirs() }.resolve("fresko_piloto.csv").apply { writeText(csv) }
+    }
+    val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+    val send = Intent(Intent.ACTION_SEND)
+        .setType("text/csv")
+        .putExtra(Intent.EXTRA_STREAM, uri)
+        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    startActivity(Intent.createChooser(send, getString(R.string.pilot_export)))
 }

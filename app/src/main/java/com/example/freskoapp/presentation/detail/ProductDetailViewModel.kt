@@ -62,8 +62,8 @@ class ProductDetailViewModel(
             val result = closeUnits(productId, units, status)
             action.update {
                 if (result != null) {
-                    val closed = result.status != ProductStatus.ACTIVE
-                    Action(isProcessing = true, removal = ProductRemoval(productId, item.product.name, status, units, closed))
+                    val closed = result.product.status != ProductStatus.ACTIVE
+                    Action(isProcessing = true, removal = ProductRemoval(productId, item.product.name, status, units, closed, result.eventId))
                 } else Action()
             }
         }
@@ -75,7 +75,7 @@ class ProductDetailViewModel(
                 val app = this[APPLICATION_KEY] as FreskoApplication
                 val savedStateHandle = navEntrySavedStateHandle()
                 val productId = checkNotNull(savedStateHandle.get<Long>(PRODUCT_ID_ARG))
-                ProductDetailViewModel(productId, app.getProductDetailUseCase(), CloseUnitsUseCase(app.productRepository), savedStateHandle)
+                ProductDetailViewModel(productId, app.getProductDetailUseCase(), app.closeUnitsUseCase(), savedStateHandle)
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.example.freskoapp.domain.usecase
 
+import com.example.freskoapp.domain.FakeEventRepository
+import com.example.freskoapp.domain.NoTransaction
 import com.example.freskoapp.domain.FakeProductRepository
 import com.example.freskoapp.domain.model.ExpirationStatus
 import com.example.freskoapp.domain.model.Location
@@ -43,7 +45,7 @@ class GetProductDetailUseCaseTest {
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
             GetProductDetailUseCase(repo, clock = clock)(1).collect { emissions.add(it?.product?.status) }
         }
-        CloseUnitsUseCase(repo)(1, 1, ProductStatus.CONSUMED)
+        CloseUnitsUseCase(repo, FakeEventRepository(), NoTransaction)(1, 1, ProductStatus.CONSUMED)
         job.cancel()
         assertEquals(listOf(ProductStatus.ACTIVE, ProductStatus.CONSUMED), emissions)
     }

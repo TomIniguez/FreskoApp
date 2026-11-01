@@ -17,7 +17,7 @@ class ProductRepositoryImpl(private val dao: ProductDao) : ProductRepository {
     override fun getProduct(id: Long): Flow<Product?> = dao.observeById(id).map { it?.toDomain() }
 
     override suspend fun addProduct(product: Product): AddResult =
-        if (dao.insertOrMerge(product.toEntity()) { it.toDomain().isSameLotAs(product) }) AddResult.MERGED else AddResult.CREATED
+        dao.insertOrMerge(product.toEntity()) { it.toDomain().isSameLotAs(product) }.let { (id, merged) -> AddResult(id, merged) }
 
     override suspend fun update(expected: Product, new: Product): Boolean =
         dao.updateIfUnchanged(expected.id, expected.quantity, expected.status.name, new.quantity, new.status.name) > 0

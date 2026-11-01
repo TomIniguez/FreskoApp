@@ -24,11 +24,11 @@ class FakeProductRepository(initial: List<Product> = emptyList()) : ProductRepos
             products.value = products.value.map {
                 if (it.id == match.id) it.copy(quantity = it.quantity + product.quantity) else it
             }
-            return AddResult.MERGED
+            return AddResult(match.id, merged = true)
         }
         val nextId = (products.value.maxOfOrNull { it.id } ?: 0) + 1
         products.value += product.copy(id = nextId)
-        return AddResult.CREATED
+        return AddResult(nextId, merged = false)
     }
 
     override suspend fun update(expected: Product, new: Product): Boolean {

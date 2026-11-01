@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.freskoapp.FreskoApplication
-import com.example.freskoapp.domain.model.AddResult
+import com.example.freskoapp.domain.model.AddMethod
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.model.ProductInfoResult
@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import kotlin.time.TimeSource
 
 // One form for both modes: with a productId it preloads that product and saves through UpdateProductUseCase.
 class AddProductViewModel(
@@ -52,6 +53,9 @@ class AddProductViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun onCameraUnavailableShown() = savedStateHandle.clearCameraUnavailable()
+
+    // Pilot metric: add time runs from opening the form to a successful save. Monotonic, so clock changes don't skew it.
+    private val openedAt = TimeSource.Monotonic.markNow()
 
     private var lookupJob: Job? = null
 
@@ -121,8 +125,12 @@ class AddProductViewModel(
                     if (result == UpdateResult.UPDATED) it.copy(saved = true) else it.copy(isSaving = false, notAvailable = true)
                 }
             } else {
-                val result = addProduct(Product(name = s.name, expirationDate = date, quantity = s.quantity.toInt(), location = s.location))
-                _state.update { it.copy(saved = true, merged = result == AddResult.MERGED) }
+                val result = addProduct(
+                    Product(name = s.name, expirationDate = date, quantity = s.quantity.toInt(), location = s.location),
+                    method = if (s.scannedBarcode != null) AddMethod.SCAN else AddMethod.MANUAL,
+                    durationMs = openedAt.elapsedNow().inWholeMilliseconds,
+                )
+                _state.update { it.copy(saved = true, merged = result.merged) }
             }
         }
     }
@@ -134,8 +142,8 @@ class AddProductViewModel(
                 val savedStateHandle = navEntrySavedStateHandle()
                 val id = savedStateHandle.get<Long>(PRODUCT_ID_ARG)?.takeIf { it != NO_PRODUCT_ID }
                 AddProductViewModel(
-                    AddProductUseCase(app.productRepository),
-                    UpdateProductUseCase(app.productRepository),
+                    app.addProductUseCase(),
+                    app.updateProductUseCase(),
                     app.getProductDetailUseCase(),
                     app.searchProductByBarcodeUseCase(),
                     id,

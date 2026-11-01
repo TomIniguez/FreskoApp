@@ -1,8 +1,11 @@
 package com.example.freskoapp.presentation.addproduct
 
+import com.example.freskoapp.domain.FakeEventRepository
+import com.example.freskoapp.domain.NoTransaction
 import androidx.lifecycle.SavedStateHandle
 import com.example.freskoapp.domain.FakeProductInfoRepository
 import com.example.freskoapp.domain.FakeProductRepository
+import com.example.freskoapp.domain.model.AddMethod
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.model.ProductInfo
@@ -31,6 +34,7 @@ class AddProductLookupTest {
     private val products = FakeProductRepository(listOf(Product(1, "Leche", date, 2, Location.FREEZER, createdAt = 1_000)))
     private val lookups = FakeProductInfoRepository()
     private var handle = SavedStateHandle()
+    private val events = FakeEventRepository()
     private val nutella = ProductInfoResult.Found(ProductInfo("Nutella", "Ferrero"))
 
     @Before
@@ -40,7 +44,7 @@ class AddProductLookupTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun vm(productId: Long? = null) = AddProductViewModel(
-        AddProductUseCase(products), UpdateProductUseCase(products), GetProductDetailUseCase(products),
+        AddProductUseCase(products, events, NoTransaction), UpdateProductUseCase(products, FakeEventRepository(), NoTransaction), GetProductDetailUseCase(products),
         SearchProductByBarcodeUseCase(lookups), productId, handle,
     )
 
@@ -174,5 +178,21 @@ class AddProductLookupTest {
         scan("123")
         assertEquals(0, lookups.calls)
         assertEquals(LookupState.Failure(LookupFailure.NOT_FOUND), vm.state.value.lookup)
+    }
+
+    @Test
+    fun saveRecordsScanOnlyWhenABarcodeWasScannedInThisForm() {
+        lookups.result = nutella
+        val scanned = vm()
+        scan()
+        scanned.fillForm()
+        scanned.save()
+        handle = SavedStateHandle() // a new form entry
+        val manual = vm()
+        manual.onNameChange("Yerba")
+        manual.fillForm()
+        manual.save()
+        assertEquals(listOf(AddMethod.SCAN, AddMethod.MANUAL), events.events.value.map { it.method })
+        assertTrue(events.events.value.all { it.durationMs != null })
     }
 }

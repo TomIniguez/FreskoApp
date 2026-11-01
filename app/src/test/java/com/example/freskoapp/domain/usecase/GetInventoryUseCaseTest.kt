@@ -39,7 +39,7 @@ class GetInventoryUseCaseTest {
     private val repo = object : ProductRepository {
         override fun getProducts(): Flow<List<Product>> = flowOf(products)
         override fun getProduct(id: Long): Flow<Product?> = flowOf(null)
-        override suspend fun addProduct(product: Product) = AddResult.CREATED
+        override suspend fun addProduct(product: Product) = AddResult(0, merged = false)
         override suspend fun update(expected: Product, new: Product) = false
         override suspend fun updateDetails(product: Product) = false
     }

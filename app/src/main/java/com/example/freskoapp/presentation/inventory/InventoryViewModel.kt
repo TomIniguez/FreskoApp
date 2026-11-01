@@ -65,7 +65,7 @@ class InventoryViewModel(
     // Consumes the pending removal first, so calling it again (double tap, recomposition) does nothing.
     fun undoRemoval() {
         val removal = savedStateHandle.takeRemoval() ?: return
-        viewModelScope.launch { restoreUnits(removal.id, removal.units, removal.status, removal.closed) }
+        viewModelScope.launch { restoreUnits(removal.id, removal.units, removal.status, removal.closed, removal.eventId) }
     }
 
     // Selecting the active chip again clears that dimension.
@@ -92,7 +92,7 @@ class InventoryViewModel(
                 InventoryViewModel(
                     app.getInventoryUseCase(),
                     app.settingsRepository,
-                    RestoreUnitsUseCase(app.productRepository),
+                    app.restoreUnitsUseCase(),
                     savedStateHandle,
                     initialStatus,
                 )

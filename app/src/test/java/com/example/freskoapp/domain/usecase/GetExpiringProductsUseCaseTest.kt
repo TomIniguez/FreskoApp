@@ -1,5 +1,7 @@
 package com.example.freskoapp.domain.usecase
 
+import com.example.freskoapp.domain.FakeEventRepository
+import com.example.freskoapp.domain.NoTransaction
 import com.example.freskoapp.domain.FakeProductRepository
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.AddResult
@@ -33,7 +35,7 @@ class GetExpiringProductsUseCaseTest {
                 object : ProductRepository {
                     override fun getProducts(): Flow<List<Product>> = flowOf(products.toList())
                     override fun getProduct(id: Long): Flow<Product?> = flowOf(null)
-                    override suspend fun addProduct(product: Product) = AddResult.CREATED
+                    override suspend fun addProduct(product: Product) = AddResult(0, merged = false)
                     override suspend fun update(expected: Product, new: Product) = false
                     override suspend fun updateDetails(product: Product) = false
                 },
@@ -70,9 +72,9 @@ class GetExpiringProductsUseCaseTest {
         val repo = FakeProductRepository(listOf(product(1, 1)))
         val expiring = GetExpiringProductsUseCase(GetInventoryUseCase(repo, clock = clock))
         assertEquals(listOf(1L), expiring().map { it.id })
-        CloseUnitsUseCase(repo)(1, 1, ProductStatus.CONSUMED)
+        CloseUnitsUseCase(repo, FakeEventRepository(), NoTransaction)(1, 1, ProductStatus.CONSUMED)
         assertEquals(emptyList<Long>(), expiring().map { it.id })
-        RestoreUnitsUseCase(repo)(1, 1, ProductStatus.CONSUMED, closed = true)
+        RestoreUnitsUseCase(repo, FakeEventRepository(), NoTransaction)(1, 1, ProductStatus.CONSUMED, closed = true, eventId = 1)
         assertEquals(listOf(1L), expiring().map { it.id })
     }
 }

@@ -1,8 +1,13 @@
 package com.example.freskoapp.domain.usecase
 
 import com.example.freskoapp.domain.model.ExpirationStatus
+import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+
+// Days from today (in the clock's zone) to the expiration date, as recorded on pilot events; negative = expired.
+fun daysToExpiry(expirationDate: LocalDate, clock: Clock): Int =
+    ChronoUnit.DAYS.between(LocalDate.now(clock), expirationDate).toInt()
 
 const val DEFAULT_WARNING_DAYS = 3
 const val MIN_WARNING_DAYS = 1

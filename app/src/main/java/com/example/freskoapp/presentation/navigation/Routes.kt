@@ -33,6 +33,7 @@ const val REMOVAL_NAME_KEY = "removal_name"
 const val REMOVAL_STATUS_KEY = "removal_status"
 const val REMOVAL_UNITS_KEY = "removal_units"
 const val REMOVAL_CLOSED_KEY = "removal_closed"
+const val REMOVAL_EVENT_ID_KEY = "removal_event_id"
 
 // The id is written last because it is the trigger observed by removalFlow().
 fun SavedStateHandle.putRemoval(removal: ProductRemoval) {
@@ -40,6 +41,7 @@ fun SavedStateHandle.putRemoval(removal: ProductRemoval) {
     this[REMOVAL_STATUS_KEY] = removal.status.name
     this[REMOVAL_UNITS_KEY] = removal.units
     this[REMOVAL_CLOSED_KEY] = removal.closed
+    this[REMOVAL_EVENT_ID_KEY] = removal.eventId
     this[REMOVAL_ID_KEY] = removal.id
 }
 
@@ -49,6 +51,7 @@ private fun SavedStateHandle.readRemoval(id: Long) = ProductRemoval(
     ProductStatus.valueOf(get<String>(REMOVAL_STATUS_KEY)!!),
     get<Int>(REMOVAL_UNITS_KEY) ?: 1,
     get<Boolean>(REMOVAL_CLOSED_KEY) ?: true,
+    get<Long>(REMOVAL_EVENT_ID_KEY) ?: 0, // 0 matches no event: undo still restores the product
 )
 
 fun SavedStateHandle.removalFlow(): Flow<ProductRemoval?> =
@@ -67,6 +70,7 @@ fun SavedStateHandle.clearRemoval() {
     remove<String>(REMOVAL_STATUS_KEY)
     remove<Int>(REMOVAL_UNITS_KEY)
     remove<Boolean>(REMOVAL_CLOSED_KEY)
+    remove<Long>(REMOVAL_EVENT_ID_KEY)
 }
 
 // One-shot notice for the Inventory: the product just registered was added to an existing lot.

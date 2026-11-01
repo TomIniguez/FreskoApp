@@ -1,6 +1,10 @@
 package com.example.freskoapp.domain.usecase
 
+import com.example.freskoapp.domain.FakeEventRepository
 import com.example.freskoapp.domain.FakeProductRepository
+import com.example.freskoapp.domain.NoTransaction
+import com.example.freskoapp.domain.model.EventType
+import com.example.freskoapp.domain.model.ProductEvent
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
 import com.example.freskoapp.domain.model.ProductStatus
@@ -10,7 +14,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 class UpdateProductUseCaseTest {
     private val date = LocalDate.of(2026, 12, 1)
@@ -21,7 +28,9 @@ class UpdateProductUseCaseTest {
             Product(3, "Queso", date, 1, Location.HELADERA, ProductStatus.CONSUMED, createdAt = 3_000),
         )
     )
-    private val useCase = UpdateProductUseCase(repo)
+    private val today = Clock.fixed(Instant.parse("2026-11-30T12:00:00Z"), ZoneOffset.UTC) // 1 day before `date`
+    private val events = FakeEventRepository()
+    private val useCase = UpdateProductUseCase(repo, events, NoTransaction, today)
 
     private fun product(id: Long) = repo.products.value.single { it.id == id }
 
@@ -50,10 +59,26 @@ class UpdateProductUseCaseTest {
     fun closedProductReturnsErrorAndStaysUntouched() = runTest {
         assertEquals(UpdateResult.NOT_ACTIVE, useCase(3, "Otro", date, 9, Location.FREEZER))
         assertEquals("Queso", product(3).name)
+        assertEquals(emptyList<ProductEvent>(), events.events.value)
     }
 
     @Test
     fun unknownProductReturnsNotFound() = runTest {
         assertEquals(UpdateResult.NOT_FOUND, useCase(99, "Leche", date, 1, Location.HELADERA))
+        assertEquals(emptyList<ProductEvent>(), events.events.value)
+    }
+
+    @Test
+    fun editRecordsProductEditedWithTheNewValues() = runTest {
+        useCase(1, "Leche", date.plusDays(2), 5, Location.HELADERA)
+        assertEquals(
+            listOf(
+                ProductEvent(
+                    id = 1, productId = 1, type = EventType.PRODUCT_EDITED, units = 5, daysToExpiry = 3,
+                    timestamp = today.millis(),
+                )
+            ),
+            events.events.value,
+        )
     }
 }

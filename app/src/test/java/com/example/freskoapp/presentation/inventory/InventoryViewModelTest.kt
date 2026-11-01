@@ -1,5 +1,7 @@
 package com.example.freskoapp.presentation.inventory
 
+import com.example.freskoapp.domain.FakeEventRepository
+import com.example.freskoapp.domain.NoTransaction
 import androidx.lifecycle.SavedStateHandle
 import com.example.freskoapp.domain.FakeProductRepository
 import com.example.freskoapp.domain.FakeSettingsRepository
@@ -36,7 +38,7 @@ class InventoryViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun viewModel(initialStatus: ExpirationStatus? = null, handle: SavedStateHandle = SavedStateHandle()) =
-        InventoryViewModel(GetInventoryUseCase(repo), settings, RestoreUnitsUseCase(repo), handle, initialStatus)
+        InventoryViewModel(GetInventoryUseCase(repo), settings, RestoreUnitsUseCase(repo, FakeEventRepository(), NoTransaction), handle, initialStatus)
 
     @Test
     fun initialStatusPreselectsFilter() {
@@ -72,7 +74,7 @@ class InventoryViewModelTest {
         val vm = viewModel(handle = handle)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.pendingRemoval.collect {} }
         assertNull(vm.pendingRemoval.value)
-        val removal = ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true)
+        val removal = ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true, 1)
         handle.putRemoval(removal)
         assertEquals(removal, vm.pendingRemoval.value)
         vm.onRemovalShown()
@@ -84,7 +86,7 @@ class InventoryViewModelTest {
         repo.products.value = listOf(
             Product(1, "Leche", LocalDate.of(2026, 12, 1), 1, Location.HELADERA, ProductStatus.CONSUMED)
         )
-        val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true)) }
+        val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true, 1)) }
         val vm = viewModel(handle = handle)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.items.collect {} }
         assertEquals(emptyList<Long>(), vm.items.value.map { it.product.id })
@@ -95,7 +97,7 @@ class InventoryViewModelTest {
     @Test
     fun undoIsSingleUse() = runTest {
         repo.products.value = listOf(Product(1, "Leche", LocalDate.of(2026, 12, 1), 2, Location.HELADERA))
-        val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, false)) }
+        val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, false, 1)) }
         val vm = viewModel(handle = handle)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.pendingRemoval.collect {} }
         vm.undoRemoval()
