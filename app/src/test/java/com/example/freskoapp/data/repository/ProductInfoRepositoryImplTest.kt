@@ -113,7 +113,8 @@ class ProductInfoRepositoryImplTest {
     @Test
     fun cancellationPropagatesInsteadOfBecomingAResult() = runBlocking {
         val patientRepo = ProductInfoRepositoryImpl(server.url("/").toString(), openFoodFactsClient(callTimeoutMillis = 10_000))
-        server.enqueue(json(200, "{}").setHeadersDelay(5, TimeUnit.SECONDS))
+        // Delay well below the 5 s MockWebServer.shutdown() waits for its threads, or tearDown fails by a few ms.
+        server.enqueue(json(200, "{}").setHeadersDelay(2, TimeUnit.SECONDS))
         var produced: ProductInfoResult? = null
         val call = async { produced = patientRepo.search("3017620422003") }
         // Cancel only once the request is in flight, so the HTTP call itself gets cancelled.
