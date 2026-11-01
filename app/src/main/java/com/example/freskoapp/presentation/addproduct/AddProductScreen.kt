@@ -114,7 +114,7 @@ fun AddProductScreen(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (!state.isEditing) BarcodeScanSection(state.lookup, onScan = onScan, onRetry = viewModel::retry)
+            if (!state.isEditing) BarcodeScanSection(state.lookup, state.scannedBarcode, onScan = onScan, onRetry = viewModel::retry)
             OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
                 Text(state.expirationDate?.format(dateFormat) ?: stringResource(R.string.pick_date))
             }
@@ -166,7 +166,7 @@ private enum class CameraPermissionNotice { DENIED, PERMANENTLY_DENIED }
 
 // "Escanear código" plus the lookup status; nothing here blocks the rest of the form.
 @Composable
-private fun BarcodeScanSection(lookup: LookupState, onScan: () -> Unit, onRetry: () -> Unit) {
+private fun BarcodeScanSection(lookup: LookupState, barcode: String?, onScan: () -> Unit, onRetry: () -> Unit) {
     val context = LocalContext.current
     val activity = LocalActivity.current
     val hasCamera = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) }
@@ -204,6 +204,7 @@ private fun BarcodeScanSection(lookup: LookupState, onScan: () -> Unit, onRetry:
         null -> {}
     }
 
+    if (barcode != null) Text(stringResource(R.string.scanned_barcode, barcode))
     when (lookup) {
         LookupState.Idle -> {}
         LookupState.Loading -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -222,7 +223,7 @@ private fun BarcodeScanSection(lookup: LookupState, onScan: () -> Unit, onRetry:
                     }
                 )
             )
-            if (lookup.canRetry) TextButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+            TextButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
         }
     }
 }

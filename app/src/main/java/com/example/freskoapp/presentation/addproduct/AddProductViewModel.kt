@@ -3,7 +3,7 @@ package com.example.freskoapp.presentation.addproduct
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.createSavedStateHandle
+import com.example.freskoapp.presentation.navigation.navEntrySavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -53,8 +53,6 @@ class AddProductViewModel(
 
     fun onCameraUnavailableShown() = savedStateHandle.clearCameraUnavailable()
 
-    // Kept only in memory for "Reintentar"; the barcode is never stored with the product.
-    private var lastBarcode: String? = null
     private var lookupJob: Job? = null
 
     init {
@@ -85,14 +83,13 @@ class AddProductViewModel(
     fun onLocationChange(location: Location) = _state.update { it.copy(location = location) }
 
     fun retry() {
-        lastBarcode?.let(::lookUp)
+        _state.value.scannedBarcode?.let(::lookUp)
     }
 
     private fun lookUp(barcode: String) {
-        lastBarcode = barcode
         // A newer scan wins: the older answer must not land on top of it.
         lookupJob?.cancel()
-        _state.update { it.copy(lookup = LookupState.Loading) }
+        _state.update { it.copy(lookup = LookupState.Loading, scannedBarcode = barcode) }
         lookupJob = viewModelScope.launch {
             val result = searchByBarcode(barcode)
             _state.update {
@@ -134,7 +131,7 @@ class AddProductViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as FreskoApplication
-                val savedStateHandle = createSavedStateHandle()
+                val savedStateHandle = navEntrySavedStateHandle()
                 val id = savedStateHandle.get<Long>(PRODUCT_ID_ARG)?.takeIf { it != NO_PRODUCT_ID }
                 AddProductViewModel(
                     AddProductUseCase(app.productRepository),

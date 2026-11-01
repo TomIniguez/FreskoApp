@@ -70,7 +70,8 @@
     <string name="lookup_not_found">No encontramos este producto. Podés cargarlo a mano.</string>
     <string name="lookup_timeout">La búsqueda tardó demasiado. Podés reintentar o cargarlo a mano.</string>
     <string name="lookup_server_error">No pudimos consultar el producto. Podés reintentar o cargarlo a mano.</string>
-    <string name="lookup_offline">Sin conexión. Podés cargar el producto a mano.</string>
+    <string name="lookup_offline">Sin conexión. Podés reintentar o cargarlo a mano.</string>
+    <string name="scanned_barcode">Código: %1$s</string>
     <string name="retry">Reintentar</string>
     <string name="settings_attribution">Datos de productos: Open Food Facts contributors (ODbL)</string>
     <plurals name="removal_consumed_partial">
