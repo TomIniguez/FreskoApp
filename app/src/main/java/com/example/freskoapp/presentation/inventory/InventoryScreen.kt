@@ -4,11 +4,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -122,26 +121,29 @@ fun InventoryScreen(
                     modifier = Modifier.padding(16.dp),
                 )
             }
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(ExpirationStatus.entries) { status ->
-                    FilterChip(
-                        selected = filter.status == status,
-                        onClick = { viewModel.onStatusSelected(status) },
-                        label = { Text(stringResource(status.labelRes())) },
-                    )
+            // Wrapping rows instead of a side-scrolling one: every filter stays visible, even on narrow screens or large fonts.
+            Column(Modifier.padding(horizontal = 16.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ExpirationStatus.entries.forEach { status ->
+                        FilterChip(
+                            selected = filter.status == status,
+                            onClick = { viewModel.onStatusSelected(status) },
+                            label = { Text(stringResource(status.labelRes())) },
+                        )
+                    }
                 }
-                items(Location.entries) { location ->
-                    FilterChip(
-                        selected = filter.location == location,
-                        onClick = { viewModel.onLocationSelected(location) },
-                        label = { Text(stringResource(location.labelRes())) },
-                    )
-                }
-                if (filter.isActive) {
-                    item {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Location.entries.forEach { location ->
+                        FilterChip(
+                            selected = filter.location == location,
+                            onClick = { viewModel.onLocationSelected(location) },
+                            label = { Text(stringResource(location.labelRes())) },
+                        )
+                    }
+                    if (filter.isActive) {
                         TextButton(onClick = viewModel::clearFilters) {
                             Text(stringResource(R.string.clear_filters))
                         }
