@@ -49,11 +49,6 @@
     <string name="settings_warning_days_description">Te avisamos cuando a un producto le queden %1$s o menos para vencer.</string>
     <string name="settings_notifications_title">Notificaciones</string>
     <string name="notifications_enabled">Notificaciones activadas</string>
-    <string name="notification_permission_title">Activá las notificaciones</string>
-    <string name="notification_permission_rationale">Fresko te avisa una vez por día qué productos están por vencer. Los avisos se generan en tu teléfono, aunque no tengas conexión.</string>
-    <string name="notification_permission_enable">Activar</string>
-    <string name="notification_permission_open_settings">Abrir ajustes</string>
-    <string name="notification_permission_dismiss">Ahora no</string>
     <string name="notification_channel_name">Avisos de vencimiento</string>
     <string name="notification_channel_description">Aviso diario de productos por vencer</string>
     <string name="scan_barcode">Escanear código de barras</string>
@@ -91,6 +86,13 @@
     <string name="inventory_loading">Cargando tus productos…</string>
     <string name="inventory_error_title">No pudimos cargar tus productos</string>
     <string name="inventory_error_body">Tus datos siguen guardados en el teléfono. Probá de nuevo.</string>
+    <string name="onboarding_title">Sabé qué consumir primero</string>
+    <string name="onboarding_body">Registrá lo que comprás y te avisamos antes de que venza. Todo queda en tu teléfono, sin cuentas.</string>
+    <string name="onboarding_point_add">Escaneá o cargá a mano</string>
+    <string name="onboarding_point_alert">Recibí un aviso antes de que venza</string>
+    <string name="onboarding_point_consume">Marcá lo que ya consumiste</string>
+    <string name="onboarding_activate">Activar avisos</string>
+    <string name="onboarding_later">Ahora no</string>
     <string name="inventory_empty_body">Agregá lo que compraste y te avisamos antes de que venza.</string>
     <string name="inventory_add_first">Agregar primer producto</string>
     <string name="inventory_no_results">Sin resultados</string>

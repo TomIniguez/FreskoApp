@@ -65,7 +65,6 @@ import com.example.freskoapp.domain.model.ProductStatus
 import com.example.freskoapp.presentation.common.FreskoIcon
 import com.example.freskoapp.presentation.common.GroupCard
 import com.example.freskoapp.presentation.common.IconLabelButton
-import com.example.freskoapp.presentation.common.NotificationPermissionCard
 import com.example.freskoapp.presentation.common.StateMessage
 import com.example.freskoapp.presentation.common.WarningBanner
 import com.example.freskoapp.presentation.common.color
@@ -125,6 +124,16 @@ fun InventoryScreen(
         viewModel.onRemovalShown()
     }
 
+    // D1: explains the alerts before Android's permission dialog, once. Either button marks it as seen, so a
+    // refusal lands on the inventory (Ajustes then shows the "notificaciones desactivadas" banner).
+    if (!promptDismissed && !permission.granted) {
+        OnboardingScreen(
+            onActivate = { permission.request(); viewModel.dismissNotificationPrompt() },
+            onLater = viewModel::dismissNotificationPrompt,
+        )
+        return
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
@@ -145,13 +154,6 @@ fun InventoryScreen(
         },
     ) { innerPadding ->
         Column(Modifier.padding(innerPadding)) {
-            if (!promptDismissed && !permission.granted) {
-                NotificationPermissionCard(
-                    state = permission,
-                    onDismiss = viewModel::dismissNotificationPrompt,
-                    modifier = Modifier.padding(16.dp),
-                )
-            }
             Filters(filter, viewModel::onAllStatusesSelected, viewModel::onStatusSelected, viewModel::onLocationSelected)
             val list = (content as? InventoryContent.Loaded)?.items
             when {
