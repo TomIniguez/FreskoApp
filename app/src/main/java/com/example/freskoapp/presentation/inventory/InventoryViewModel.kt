@@ -25,6 +25,9 @@ import com.example.freskoapp.presentation.navigation.takeRemoval
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -42,11 +45,20 @@ class InventoryViewModel(
     private val _filter = MutableStateFlow(InventoryFilter(status = initialStatus))
     val filter: StateFlow<InventoryFilter> = _filter
 
-    // null until Room delivers the first list, so the screen shows a skeleton instead of flashing "empty".
+    // Bumped by "Reintentar" to restart the query after a read error.
+    private val retries = MutableStateFlow(0)
+
+    // Loading until Room delivers the first list (skeleton instead of flashing "empty"); Error if the read fails.
     @OptIn(ExperimentalCoroutinesApi::class)
-    val items: StateFlow<List<InventoryItem>?> = _filter
-        .flatMapLatest { getInventory(it) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val content: StateFlow<InventoryContent> = combine(_filter, retries) { filter, _ -> filter }
+        .flatMapLatest { filter ->
+            getInventory(filter)
+                .map<List<InventoryItem>, InventoryContent> { InventoryContent.Loaded(it) }
+                .catch { emit(InventoryContent.Error) } // the data stays on disk; the screen offers a retry
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), InventoryContent.Loading)
+
+    fun retry() = retries.update { it + 1 }
 
     // Opened from the expiration alert (deep link with a status): the list explains why it is filtered.
     val openedFromAlert: Boolean = initialStatus != null
@@ -106,4 +118,10 @@ class InventoryViewModel(
             }
         }
     }
+}
+
+sealed interface InventoryContent {
+    data object Loading : InventoryContent
+    data class Loaded(val items: List<InventoryItem>) : InventoryContent
+    data object Error : InventoryContent
 }

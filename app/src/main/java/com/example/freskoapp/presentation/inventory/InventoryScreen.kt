@@ -87,7 +87,7 @@ fun InventoryScreen(
     onProductClick: (Long) -> Unit,
     viewModel: InventoryViewModel = viewModel(factory = InventoryViewModel.Factory),
 ) {
-    val items by viewModel.items.collectAsStateWithLifecycle()
+    val content by viewModel.content.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val promptDismissed by viewModel.notificationPromptDismissed.collectAsStateWithLifecycle()
     val removal by viewModel.pendingRemoval.collectAsStateWithLifecycle()
@@ -153,9 +153,20 @@ fun InventoryScreen(
                 )
             }
             Filters(filter, viewModel::onAllStatusesSelected, viewModel::onStatusSelected, viewModel::onLocationSelected)
-            val list = items
+            val list = (content as? InventoryContent.Loaded)?.items
             when {
-                list == null -> LoadingList()
+                content == InventoryContent.Loading -> LoadingList()
+                list == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    StateMessage(
+                        icon = R.drawable.ic_alert_circle,
+                        circleColor = MaterialTheme.colorScheme.errorContainer,
+                        iconTint = MaterialTheme.colorScheme.onErrorContainer,
+                        title = stringResource(R.string.inventory_error_title),
+                        body = stringResource(R.string.inventory_error_body),
+                    ) {
+                        IconLabelButton(R.drawable.ic_refresh, stringResource(R.string.retry), viewModel::retry)
+                    }
+                }
                 list.isEmpty() && filter.isActive -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     StateMessage(
                         icon = R.drawable.ic_search,

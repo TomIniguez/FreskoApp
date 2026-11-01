@@ -3,6 +3,7 @@ package com.example.freskoapp.domain.usecase
 import com.example.freskoapp.domain.FakeEventRepository
 import com.example.freskoapp.domain.model.EventType
 import com.example.freskoapp.domain.model.ProductEvent
+import com.example.freskoapp.domain.repository.EventRepository
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -32,5 +33,13 @@ class RecordAppEventUseCaseTest {
     @Test
     fun productEventsMustGoThroughTheirUseCase() {
         assertThrows(IllegalArgumentException::class.java) { runBlocking { record(EventType.UNITS_CONSUMED) } }
+    }
+
+    @Test
+    fun aFailedWriteIsSwallowedSoStartupNeverCrashes() = runTest {
+        val broken = object : EventRepository by events {
+            override suspend fun record(event: ProductEvent): Long = throw IllegalStateException("cannot open database")
+        }
+        RecordAppEventUseCase(broken)(EventType.APP_OPEN) // no exception
     }
 }
