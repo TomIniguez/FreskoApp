@@ -2,29 +2,29 @@
     <string name="app_name">FreskoApp</string>
     <string name="inventory_title">Fresko</string>
     <string name="add_product_cd">Agregar producto</string>
-    <string name="inventory_empty">Todavía no registraste productos</string>
+    <string name="inventory_empty">Todavía no cargaste productos</string>
     <string name="inventory_item_detail">Vence: %1$s · %2$s · Cantidad: %3$d</string>
     <string name="inventory_empty_filtered">Ningún producto coincide con los filtros</string>
-    <string name="clear_filters">Quitar filtros</string>
+    <string name="clear_filters">Limpiar filtros</string>
     <string name="status_expired">Vencido</string>
     <string name="status_expiring_soon">Por vencer</string>
     <string name="status_fresh">Vigente</string>
     <string name="add_product_title">Nuevo producto</string>
     <string name="back_cd">Volver</string>
-    <string name="product_detail_title">Detalle del producto</string>
+    <string name="product_detail_title">Detalle</string>
     <string name="detail_expires_on">Vence el %1$s</string>
     <string name="detail_quantity">Cantidad: %1$d</string>
     <string name="detail_location">Ubicación: %1$s</string>
     <string name="detail_question">¿Qué hiciste con este producto?</string>
     <string name="action_edit">Editar</string>
-    <string name="action_consumed">Consumido</string>
+    <string name="action_consumed">Lo consumí</string>
     <string name="edit_product_title">Editar producto</string>
     <string name="detail_created_on">Cargado el %1$s</string>
-    <string name="action_discarded">Descartado</string>
-    <string name="detail_undo_hint">Si te equivocás, vas a poder deshacerlo.</string>
+    <string name="action_discarded">Lo descarté</string>
+    <string name="detail_undo_hint">Se quita del inventario y deja de generar alertas.</string>
     <string name="detail_not_available">Este producto ya no está en tu inventario.</string>
-    <string name="removal_consumed">Marcaste %1$s como consumido</string>
-    <string name="removal_discarded">Marcaste %1$s como descartado</string>
+    <string name="removal_consumed">%1$s marcado como consumido</string>
+    <string name="removal_discarded">%1$s marcado como descartado</string>
     <string name="undo">Deshacer</string>
     <string name="lot_merged">Se sumó a un registro existente</string>
     <string name="product_unavailable">Este producto ya no está disponible</string>
@@ -56,9 +56,9 @@
     <string name="notification_permission_dismiss">Ahora no</string>
     <string name="notification_channel_name">Avisos de vencimiento</string>
     <string name="notification_channel_description">Aviso diario de productos por vencer</string>
-    <string name="scan_barcode">Escanear código</string>
+    <string name="scan_barcode">Escanear código de barras</string>
     <string name="scanner_title">Escanear código</string>
-    <string name="scanner_hint">Apuntá la cámara al código de barras del producto</string>
+    <string name="scanner_hint">Apuntá al código de barras del producto</string>
     <string name="torch_on_cd">Encender linterna</string>
     <string name="torch_off_cd">Apagar linterna</string>
     <string name="camera_permission_denied">Sin permiso de cámara no podemos escanear. Podés cargar el producto a mano.</string>
@@ -67,11 +67,11 @@
     <string name="camera_unavailable">No pudimos abrir la cámara. Podés cargar el producto a mano.</string>
     <string name="lookup_loading">Buscando el producto…</string>
     <string name="lookup_found">Encontrado: %1$s</string>
-    <string name="lookup_not_found">No encontramos este producto. Podés cargarlo a mano.</string>
-    <string name="lookup_timeout">La búsqueda tardó demasiado. Podés reintentar o cargarlo a mano.</string>
-    <string name="lookup_server_error">No pudimos consultar el producto. Podés reintentar o cargarlo a mano.</string>
-    <string name="lookup_offline">Sin conexión. Podés reintentar o cargarlo a mano.</string>
-    <string name="scanned_barcode">Código: %1$s</string>
+    <string name="lookup_not_found">No encontramos este código. Completá el nombre a mano.</string>
+    <string name="lookup_timeout">La búsqueda tardó demasiado. Completá el nombre a mano.</string>
+    <string name="lookup_server_error">No pudimos consultar el producto. Completá el nombre a mano.</string>
+    <string name="lookup_offline">Sin conexión. Completá el nombre a mano; el resto funciona igual.</string>
+    <string name="scanned_barcode">Código %1$s</string>
     <string name="retry">Reintentar</string>
     <string name="settings_attribution">Datos de productos: Open Food Facts contributors (ODbL)</string>
     <string name="pilot_title">Datos del piloto</string>
@@ -83,6 +83,70 @@
     <string name="pilot_units_discarded">Unidades descartadas: %1$d</string>
     <string name="pilot_units_consumed_expiring">Unidades consumidas estando por vencer: %1$d</string>
     <string name="pilot_export">Exportar datos del piloto</string>
+    <!-- Figma redesign -->
+    <string name="filter_all">Todos</string>
+    <string name="filter_expired">Vencidos</string>
+    <string name="filter_expiring_soon">Por vencer</string>
+    <string name="filter_fresh">Vigentes</string>
+    <string name="inventory_loading">Cargando tus productos…</string>
+    <string name="inventory_empty_body">Agregá lo que compraste y te avisamos antes de que venza.</string>
+    <string name="inventory_add_first">Agregar primer producto</string>
+    <string name="inventory_no_results">Sin resultados</string>
+    <string name="inventory_no_results_status">No hay productos %1$s.</string>
+    <string name="inventory_no_results_location">No hay productos en %1$s.</string>
+    <string name="inventory_no_results_both">No hay productos %1$s en %2$s.</string>
+    <string name="no_results_status_expired">vencidos</string>
+    <string name="no_results_status_expiring_soon">por vencer</string>
+    <string name="no_results_status_fresh">vigentes</string>
+    <string name="no_results_location_heladera">la heladera</string>
+    <string name="no_results_location_freezer">el freezer</string>
+    <string name="no_results_location_alacena">la alacena</string>
+    <string name="inventory_from_alert">Mostrando lo que vence pronto</string>
+    <string name="inventory_show_all">Ver todos</string>
+    <string name="inventory_item_meta">%1$s · %2$s · %3$s</string>
+    <string name="summary_separator">" · "</string>
+    <string name="add_sheet_title">Agregar producto</string>
+    <string name="add_sheet_scan_title">Escanear código de barras</string>
+    <string name="add_sheet_scan_body">Completa el nombre solo. Usa la cámara.</string>
+    <string name="add_sheet_manual_title">Cargar manualmente</string>
+    <string name="add_sheet_manual_body">Funciona siempre, también sin conexión.</string>
+    <string name="scanner_subtitle">Buscamos el nombre automáticamente</string>
+    <string name="scanner_manual">Cargar manualmente</string>
+    <string name="camera_off_title">La cámara está desactivada</string>
+    <string name="camera_off_body">Para escanear necesitamos el permiso de cámara. Podés seguir cargando el producto a mano.</string>
+    <string name="camera_off_settings">Abrir ajustes del sistema</string>
+    <string name="field_name_required">Nombre del producto *</string>
+    <string name="field_name_placeholder">Ej.: Yogur natural</string>
+    <string name="field_date_required">Fecha de vencimiento *</string>
+    <string name="field_date_placeholder">DD/MM/AAAA</string>
+    <string name="field_date_cd">Elegir fecha de vencimiento</string>
+    <string name="error_name_required">Ingresá el nombre del producto</string>
+    <string name="error_date_required">Ingresá la fecha de vencimiento</string>
+    <string name="hint_autocompleted">Autocompletado desde Open Food Facts · editable</string>
+    <string name="hint_date_missing">Falta el vencimiento: está impreso en el envase</string>
+    <string name="date_plus_3_days">+3 días</string>
+    <string name="date_plus_1_week">+1 sem.</string>
+    <string name="date_plus_1_month">+1 mes</string>
+    <string name="date_plus_3_months">+3 meses</string>
+    <string name="save_product">Guardar producto</string>
+    <string name="stepper_decrease_cd">Menos</string>
+    <string name="stepper_increase_cd">Más</string>
+    <string name="detail_row_location">Ubicación</string>
+    <string name="detail_row_quantity">Cantidad</string>
+    <string name="detail_row_added">Agregado el</string>
+    <string name="settings_section_alerts">Alertas</string>
+    <string name="settings_warning_days_row">Avisar con anticipación</string>
+    <string name="settings_warning_days_caption">Días antes del vencimiento</string>
+    <string name="settings_notifications_on">Activadas</string>
+    <string name="settings_notifications_off">Desactivadas en el sistema</string>
+    <string name="settings_notifications_off_banner">Las notificaciones están desactivadas: no vamos a avisarte de los vencimientos.</string>
+    <string name="settings_notifications_activate">Activar</string>
+    <string name="settings_alert_time">Hora del aviso</string>
+    <string name="settings_alert_time_caption">Una vez por día</string>
+    <string name="settings_section_privacy">Privacidad</string>
+    <string name="settings_your_data">Tus datos</string>
+    <string name="settings_your_data_body">Se guardan solo en este teléfono. Sin cuentas ni nube.</string>
+    <string name="settings_section_pilot">Piloto</string>
     <plurals name="removal_consumed_partial">
         <item quantity="one">Consumiste %2$d unidad de %1$s</item>
         <item quantity="other">Consumiste %2$d unidades de %1$s</item>
@@ -94,5 +158,47 @@
     <plurals name="notification_expiring_title">
         <item quantity="one">%d producto por vencer</item>
         <item quantity="other">%d productos por vencer</item>
+    </plurals>
+    <plurals name="expiry_expired_days_ago">
+        <item quantity="one">Vencido hace %1$d día</item>
+        <item quantity="other">Vencido hace %1$d días</item>
+    </plurals>
+    <string name="expiry_today">Vence hoy</string>
+    <string name="expiry_tomorrow">Vence mañana</string>
+    <plurals name="expiry_in_days">
+        <item quantity="one">Vence en %1$d día</item>
+        <item quantity="other">Vence en %1$d días</item>
+    </plurals>
+    <plurals name="expiry_fresh_days">
+        <item quantity="one">Vigente · %1$d día</item>
+        <item quantity="other">Vigente · %1$d días</item>
+    </plurals>
+    <plurals name="expiry_fresh_months">
+        <item quantity="one">Vigente · %1$d mes</item>
+        <item quantity="other">Vigente · %1$d meses</item>
+    </plurals>
+    <plurals name="expiry_fresh_years">
+        <item quantity="one">Vigente · %1$d año</item>
+        <item quantity="other">Vigente · %1$d años</item>
+    </plurals>
+    <plurals name="summary_products">
+        <item quantity="one">%1$d producto</item>
+        <item quantity="other">%1$d productos</item>
+    </plurals>
+    <plurals name="summary_expired">
+        <item quantity="one">%1$d vencido</item>
+        <item quantity="other">%1$d vencidos</item>
+    </plurals>
+    <plurals name="summary_expiring_soon">
+        <item quantity="one">%1$d por vencer</item>
+        <item quantity="other">%1$d por vencer</item>
+    </plurals>
+    <plurals name="summary_filtered">
+        <item quantity="one">%1$d producto %2$s</item>
+        <item quantity="other">%1$d productos %2$s</item>
+    </plurals>
+    <plurals name="units_count">
+        <item quantity="one">%1$d unidad</item>
+        <item quantity="other">%1$d unidades</item>
     </plurals>
 </resources>

@@ -20,10 +20,11 @@ const val PRODUCT_DETAIL_ROUTE = "product/{productId}"
 fun productDetailRoute(id: Long) = "product/$id"
 
 // Same form for registering and editing: productId is optional, -1 means "new".
-const val ADD_PRODUCT_ROUTE = "add_product?productId={productId}"
+const val ADD_PRODUCT_ROUTE = "add_product?productId={productId}&scan={scan}"
+const val START_SCAN_ARG = "scan" // true: the form opens the scanner right away (chosen in the add sheet)
 const val NO_PRODUCT_ID = -1L
 
-fun addProductRoute() = "add_product"
+fun addProductRoute(scan: Boolean) = "add_product?scan=$scan"
 
 fun editProductRoute(id: Long) = "add_product?productId=$id"
 

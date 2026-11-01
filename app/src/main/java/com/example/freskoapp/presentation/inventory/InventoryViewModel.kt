@@ -42,10 +42,14 @@ class InventoryViewModel(
     private val _filter = MutableStateFlow(InventoryFilter(status = initialStatus))
     val filter: StateFlow<InventoryFilter> = _filter
 
+    // null until Room delivers the first list, so the screen shows a skeleton instead of flashing "empty".
     @OptIn(ExperimentalCoroutinesApi::class)
-    val items: StateFlow<List<InventoryItem>> = _filter
+    val items: StateFlow<List<InventoryItem>?> = _filter
         .flatMapLatest { getInventory(it) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    // Opened from the expiration alert (deep link with a status): the list explains why it is filtered.
+    val openedFromAlert: Boolean = initialStatus != null
 
     // Starts true so the permission card doesn't flash before DataStore emits.
     val notificationPromptDismissed: StateFlow<Boolean> = settings.notificationPromptDismissed
@@ -71,6 +75,9 @@ class InventoryViewModel(
     // Selecting the active chip again clears that dimension.
     fun onStatusSelected(status: ExpirationStatus) =
         _filter.update { it.copy(status = status.takeIf { s -> s != it.status }) }
+
+    // "Todos": no status filter.
+    fun onAllStatusesSelected() = _filter.update { it.copy(status = null) }
 
     fun onLocationSelected(location: Location) =
         _filter.update { it.copy(location = location.takeIf { l -> l != it.location }) }

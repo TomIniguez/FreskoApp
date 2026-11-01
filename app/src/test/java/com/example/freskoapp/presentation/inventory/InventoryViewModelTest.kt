@@ -22,6 +22,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
@@ -58,6 +60,22 @@ class InventoryViewModelTest {
     }
 
     @Test
+    fun todosClearsOnlyTheStatusAndAlertFlagFollowsTheDeepLink() {
+        val vm = viewModel(ExpirationStatus.EXPIRING_SOON)
+        vm.onLocationSelected(Location.FREEZER)
+        vm.onAllStatusesSelected()
+        assertNull(vm.filter.value.status)
+        assertEquals(Location.FREEZER, vm.filter.value.location)
+        assertTrue(vm.openedFromAlert)
+        assertFalse(viewModel().openedFromAlert)
+    }
+
+    @Test
+    fun itemsAreNullUntilTheFirstListArrives() {
+        assertNull(viewModel().items.value) // the screen shows the skeleton, not "empty"
+    }
+
+    @Test
     fun dismissedFlagComesFromSettings() = runTest {
         val vm = viewModel()
         // WhileSubscribed: collect so the stateIn upstream is active.
@@ -89,9 +107,9 @@ class InventoryViewModelTest {
         val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true, 1)) }
         val vm = viewModel(handle = handle)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.items.collect {} }
-        assertEquals(emptyList<Long>(), vm.items.value.map { it.product.id })
+        assertEquals(emptyList<Long>(), vm.items.value!!.map { it.product.id })
         vm.undoRemoval()
-        assertEquals(listOf(1L), vm.items.value.map { it.product.id })
+        assertEquals(listOf(1L), vm.items.value!!.map { it.product.id })
     }
 
     @Test

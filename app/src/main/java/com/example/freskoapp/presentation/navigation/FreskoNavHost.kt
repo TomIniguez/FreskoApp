@@ -46,7 +46,7 @@ fun FreskoNavHost() {
             deepLinks = listOf(navDeepLink { uriPattern = INVENTORY_DEEP_LINK_PATTERN }),
         ) {
             InventoryScreen(
-                onAddClick = { navController.navigate(addProductRoute()) },
+                onAdd = { scan -> navController.navigate(addProductRoute(scan)) },
                 onSettingsClick = { navController.navigate("settings") },
                 onProductClick = { id -> navController.navigate(productDetailRoute(id)) },
             )
@@ -68,7 +68,10 @@ fun FreskoNavHost() {
         }
         composable(
             route = ADD_PRODUCT_ROUTE,
-            arguments = listOf(navArgument(PRODUCT_ID_ARG) { type = NavType.LongType; defaultValue = NO_PRODUCT_ID }),
+            arguments = listOf(
+                navArgument(PRODUCT_ID_ARG) { type = NavType.LongType; defaultValue = NO_PRODUCT_ID },
+                navArgument(START_SCAN_ARG) { type = NavType.BoolType; defaultValue = false },
+            ),
         ) {
             AddProductScreen(
                 onBack = { navController.popBackStack() },
