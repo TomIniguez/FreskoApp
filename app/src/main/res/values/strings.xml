@@ -74,6 +74,15 @@
     <string name="scanned_barcode">Código: %1$s</string>
     <string name="retry">Reintentar</string>
     <string name="settings_attribution">Datos de productos: Open Food Facts contributors (ODbL)</string>
+    <string name="pilot_title">Datos del piloto</string>
+    <string name="pilot_added">Productos agregados: %1$d por escaneo, %2$d a mano</string>
+    <string name="pilot_median_add_time">Tiempo mediano para agregar: %1$s</string>
+    <string name="pilot_seconds">%1$d s</string>
+    <string name="pilot_no_data">sin datos</string>
+    <string name="pilot_units_consumed">Unidades consumidas: %1$d</string>
+    <string name="pilot_units_discarded">Unidades descartadas: %1$d</string>
+    <string name="pilot_units_consumed_expiring">Unidades consumidas estando por vencer: %1$d</string>
+    <string name="pilot_export">Exportar datos del piloto</string>
     <plurals name="removal_consumed_partial">
         <item quantity="one">Consumiste %2$d unidad de %1$s</item>
         <item quantity="other">Consumiste %2$d unidades de %1$s</item>

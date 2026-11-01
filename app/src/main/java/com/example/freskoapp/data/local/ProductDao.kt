@@ -15,7 +15,7 @@ interface ProductDao {
     fun observeById(id: Long): Flow<ProductEntity?>
 
     @Insert
-    suspend fun insert(product: ProductEntity)
+    suspend fun insert(product: ProductEntity): Long
 
     @Query("SELECT * FROM products WHERE status = 'ACTIVE' AND expirationEpochDay = :epochDay AND location = :location")
     suspend fun findActiveLots(epochDay: Long, location: String): List<ProductEntity>
@@ -27,12 +27,13 @@ interface ProductDao {
     @Query("UPDATE products SET name = :name, expirationEpochDay = :epochDay, quantity = :quantity, location = :location WHERE id = :id AND status = 'ACTIVE'")
     suspend fun updateDetails(id: Long, name: String, epochDay: Long, quantity: Int, location: String): Int
 
-    // Find + merge-or-insert in one transaction so a double tap can't create duplicates. True if it merged.
+    // Find + merge-or-insert in one transaction so a double tap can't create duplicates. Returns (id of the lot, merged).
     @Transaction
-    suspend fun insertOrMerge(product: ProductEntity, isSameLot: (ProductEntity) -> Boolean): Boolean {
+    suspend fun insertOrMerge(product: ProductEntity, isSameLot: (ProductEntity) -> Boolean): Pair<Long, Boolean> {
         val match = findActiveLots(product.expirationEpochDay, product.location).firstOrNull(isSameLot)
-        if (match == null) insert(product) else addQuantity(match.id, product.quantity)
-        return match != null
+        if (match == null) return insert(product) to false
+        addQuantity(match.id, product.quantity)
+        return match.id to true
     }
 
     // Returns the number of rows changed: 0 if quantity or status no longer match the expected ones.

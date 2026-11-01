@@ -21,6 +21,9 @@ object ExpirationNotifier {
     const val CHANNEL_ID = "expiration_alerts"
     const val NOTIFICATION_ID = 1001
 
+    // Marks intents that come from the alert, so MainActivity can record NOTIFICATION_TAPPED.
+    const val EXTRA_FROM_NOTIFICATION = "from_notification"
+
     // minSdk is 26, so channels always exist; creating an existing channel is a no-op.
     fun createChannel(context: Context) {
         val channel = NotificationChannel(
@@ -51,6 +54,7 @@ object ExpirationNotifier {
             context,
             MainActivity::class.java,
         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            .putExtra(EXTRA_FROM_NOTIFICATION, true)
         val contentIntent = PendingIntent.getActivity(
             context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )

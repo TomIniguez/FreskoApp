@@ -1,5 +1,6 @@
 package com.example.freskoapp.presentation.settings
 
+import com.example.freskoapp.domain.FakeEventRepository
 import com.example.freskoapp.domain.FakeSettingsRepository
 import com.example.freskoapp.domain.usecase.SetWarningDaysUseCase
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,7 @@ class SettingsViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel() = SettingsViewModel(settings, SetWarningDaysUseCase(settings))
+    private fun viewModel() = SettingsViewModel(settings, SetWarningDaysUseCase(settings), FakeEventRepository())
 
     @Test
     fun exposesRepositoryValue() = runTest {

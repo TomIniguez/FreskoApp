@@ -1,5 +1,7 @@
 package com.example.freskoapp.presentation.addproduct
 
+import com.example.freskoapp.domain.FakeEventRepository
+import com.example.freskoapp.domain.NoTransaction
 import com.example.freskoapp.domain.FakeProductInfoRepository
 import com.example.freskoapp.domain.FakeProductRepository
 import com.example.freskoapp.domain.model.Location
@@ -32,7 +34,7 @@ class AddProductViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun editVm(id: Long = 1) = AddProductViewModel(
-        AddProductUseCase(repo), UpdateProductUseCase(repo), GetProductDetailUseCase(repo),
+        AddProductUseCase(repo, FakeEventRepository(), NoTransaction), UpdateProductUseCase(repo, FakeEventRepository(), NoTransaction), GetProductDetailUseCase(repo),
         SearchProductByBarcodeUseCase(FakeProductInfoRepository()), id,
     )
 

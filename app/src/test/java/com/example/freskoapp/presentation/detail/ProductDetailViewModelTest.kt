@@ -1,5 +1,7 @@
 package com.example.freskoapp.presentation.detail
 
+import com.example.freskoapp.domain.FakeEventRepository
+import com.example.freskoapp.domain.NoTransaction
 import com.example.freskoapp.domain.FakeProductRepository
 import com.example.freskoapp.domain.model.Location
 import com.example.freskoapp.domain.model.Product
@@ -40,8 +42,10 @@ class ProductDetailViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
+    private val events = FakeEventRepository()
+
     private fun viewModel(id: Long) =
-        ProductDetailViewModel(id, GetProductDetailUseCase(repo), CloseUnitsUseCase(repo))
+        ProductDetailViewModel(id, GetProductDetailUseCase(repo), CloseUnitsUseCase(repo, events, NoTransaction))
 
     // WhileSubscribed: collect so the stateIn upstream is active.
     private fun kotlinx.coroutines.test.TestScope.observe(vm: ProductDetailViewModel) {
@@ -62,7 +66,7 @@ class ProductDetailViewModelTest {
         val vm = viewModel(1)
         observe(vm)
         vm.markConsumed(2)
-        assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 2, true), vm.state.value.removal)
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 2, true, 1), vm.state.value.removal)
         assertEquals(ProductStatus.CONSUMED, repo.getProduct(1).first()?.status)
         assertFalse(vm.state.value.notAvailable)
     }
@@ -72,7 +76,7 @@ class ProductDetailViewModelTest {
         val vm = viewModel(1)
         observe(vm)
         vm.markConsumed(1)
-        assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, false), vm.state.value.removal)
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, false, 1), vm.state.value.removal)
         assertEquals(ProductStatus.ACTIVE, repo.getProduct(1).first()?.status)
         assertEquals(1, repo.getProduct(1).first()?.quantity)
     }
@@ -82,7 +86,7 @@ class ProductDetailViewModelTest {
         val vm = viewModel(1)
         observe(vm)
         vm.markDiscarded()
-        assertEquals(ProductRemoval(1, "Leche", ProductStatus.DISCARDED, 2, true), vm.state.value.removal)
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.DISCARDED, 2, true, 1), vm.state.value.removal)
         assertEquals(ProductStatus.DISCARDED, repo.getProduct(1).first()?.status)
     }
 
@@ -93,9 +97,10 @@ class ProductDetailViewModelTest {
         observe(vm)
         vm.markConsumed(1)
         val removal = vm.state.value.removal!!
-        assertEquals(ProductRemoval(3, "Queso", ProductStatus.CONSUMED, 1, true), removal)
-        RestoreUnitsUseCase(repo)(removal.id, removal.units, removal.status, removal.closed)
+        assertEquals(ProductRemoval(3, "Queso", ProductStatus.CONSUMED, 1, true, 1), removal)
+        RestoreUnitsUseCase(repo, events, NoTransaction)(removal.id, removal.units, removal.status, removal.closed, removal.eventId)
         assertEquals(ProductStatus.ACTIVE, repo.getProduct(3).first()?.status)
+        assertEquals(emptyList<Any>(), events.events.value) // undo removed the event it undid
     }
 
     @Test
@@ -129,7 +134,7 @@ class ProductDetailViewModelTest {
     @Test
     fun unavailableNoticeIsSingleUse() = runTest {
         val handle = androidx.lifecycle.SavedStateHandle()
-        val vm = ProductDetailViewModel(1, GetProductDetailUseCase(repo), CloseUnitsUseCase(repo), handle)
+        val vm = ProductDetailViewModel(1, GetProductDetailUseCase(repo), CloseUnitsUseCase(repo, FakeEventRepository(), NoTransaction), handle)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.unavailableNotice.collect {} }
         assertFalse(vm.unavailableNotice.value)
         handle.putProductUnavailable()
