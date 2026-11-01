@@ -89,6 +89,8 @@
     <string name="filter_expiring_soon">Por vencer</string>
     <string name="filter_fresh">Vigentes</string>
     <string name="inventory_loading">Cargando tus productos…</string>
+    <string name="inventory_error_title">No pudimos cargar tus productos</string>
+    <string name="inventory_error_body">Tus datos siguen guardados en el teléfono. Probá de nuevo.</string>
     <string name="inventory_empty_body">Agregá lo que compraste y te avisamos antes de que venza.</string>
     <string name="inventory_add_first">Agregar primer producto</string>
     <string name="inventory_no_results">Sin resultados</string>

@@ -1,5 +1,9 @@
 package com.example.freskoapp.presentation.inventory
 
+import java.io.IOException
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import com.example.freskoapp.domain.repository.ProductRepository
 import com.example.freskoapp.domain.FakeEventRepository
 import com.example.freskoapp.domain.NoTransaction
 import androidx.lifecycle.SavedStateHandle
@@ -71,8 +75,8 @@ class InventoryViewModelTest {
     }
 
     @Test
-    fun itemsAreNullUntilTheFirstListArrives() {
-        assertNull(viewModel().items.value) // the screen shows the skeleton, not "empty"
+    fun contentIsLoadingUntilTheFirstListArrives() {
+        assertEquals(InventoryContent.Loading, viewModel().content.value) // the screen shows the skeleton, not "empty"
     }
 
     @Test
@@ -106,10 +110,10 @@ class InventoryViewModelTest {
         )
         val handle = SavedStateHandle().apply { putRemoval(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, true, 1)) }
         val vm = viewModel(handle = handle)
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.items.collect {} }
-        assertEquals(emptyList<Long>(), vm.items.value!!.map { it.product.id })
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.content.collect {} }
+        assertEquals(emptyList<Long>(), vm.loadedIds())
         vm.undoRemoval()
-        assertEquals(listOf(1L), vm.items.value!!.map { it.product.id })
+        assertEquals(listOf(1L), vm.loadedIds())
     }
 
     @Test
@@ -141,5 +145,26 @@ class InventoryViewModelTest {
         assertEquals(true, vm.lotMerged.value)
         vm.onLotMergedShown()
         assertEquals(false, vm.lotMerged.value)
+    }
+
+    private fun InventoryViewModel.loadedIds() = (content.value as InventoryContent.Loaded).items.map { it.product.id }
+
+    @Test
+    fun readErrorShowsTheErrorStateAndRetryLoadsAgain() = runTest {
+        var failing = true
+        // Same data as the fake, but the first reads fail like a broken database would.
+        val flaky = object : ProductRepository by repo {
+            override fun getProducts() = flow {
+                if (failing) throw IOException("disk I/O error")
+                emitAll(repo.getProducts())
+            }
+        }
+        repo.products.value = listOf(Product(1, "Leche", LocalDate.of(2026, 12, 1), 1, Location.HELADERA))
+        val vm = InventoryViewModel(GetInventoryUseCase(flaky), settings, RestoreUnitsUseCase(repo, FakeEventRepository(), NoTransaction))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.content.collect {} }
+        assertEquals(InventoryContent.Error, vm.content.value)
+        failing = false
+        vm.retry()
+        assertEquals(listOf(1L), vm.loadedIds())
     }
 }
