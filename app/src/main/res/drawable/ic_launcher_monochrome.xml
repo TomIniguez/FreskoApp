@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Versión monocromática para los "íconos temáticos" de Android 13+.
+     El sistema solo usa la forma (canal alfa) y la pinta con los colores del fondo de pantalla,
+     por eso acá la esfera es un anillo: si fuera un círculo lleno, las agujas desaparecerían. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:pivotX="54" android:pivotY="54" android:scaleX="0.9" android:scaleY="0.9" android:translateY="4.05">
+        <path
+            android:pathData="M54,37 C54,33 56,30 59,28"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2.4"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M57,31 C58,24 64,20 73,20 C72,28 66,33 57,31 Z" />
+        <path
+            android:pathData="M33,58 a21,21 0 1,0 42,0 a21,21 0 1,0 -42,0 Z"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="3.5" />
+        <path
+            android:pathData="M54,58 L54,46 M54,58 L63,63"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="3.2"
+            android:strokeLineCap="round" />
+    </group>
+</vector>
