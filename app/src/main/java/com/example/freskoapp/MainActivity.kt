@@ -4,44 +4,29 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
+import com.example.freskoapp.domain.model.EventType
+import com.example.freskoapp.presentation.navigation.FreskoNavHost
 import com.example.freskoapp.presentation.theme.FreskoAppTheme
+import com.example.freskoapp.work.ExpirationNotifier
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            FreskoAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+        // A fresh start of the UI (launcher or alert), not a rotation or a restore after process death.
+        // The background worker never creates this activity, so it never counts as an open.
+        if (savedInstanceState == null) {
+            val record = (application as FreskoApplication).recordAppEventUseCase()
+            val fromAlert = intent.getBooleanExtra(ExpirationNotifier.EXTRA_FROM_NOTIFICATION, false)
+            lifecycleScope.launch {
+                record(EventType.APP_OPEN)
+                if (fromAlert) record(EventType.NOTIFICATION_TAPPED)
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    FreskoAppTheme {
-        Greeting("Android")
+        enableEdgeToEdge()
+        setContent {
+            FreskoAppTheme { FreskoNavHost() }
+        }
     }
 }

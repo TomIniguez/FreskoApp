@@ -1,0 +1,145 @@
+package com.example.freskoapp.presentation.detail
+
+import com.example.freskoapp.domain.FakeEventRepository
+import com.example.freskoapp.domain.NoTransaction
+import com.example.freskoapp.domain.FakeProductRepository
+import com.example.freskoapp.domain.model.Location
+import com.example.freskoapp.domain.model.Product
+import com.example.freskoapp.domain.model.ProductStatus
+import com.example.freskoapp.domain.usecase.GetProductDetailUseCase
+import com.example.freskoapp.domain.usecase.CloseUnitsUseCase
+import com.example.freskoapp.domain.usecase.RestoreUnitsUseCase
+import com.example.freskoapp.presentation.common.ProductRemoval
+import com.example.freskoapp.presentation.navigation.putProductUnavailable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import java.time.LocalDate
+
+class ProductDetailViewModelTest {
+    private val repo = FakeProductRepository(
+        listOf(
+            Product(1, "Leche", LocalDate.of(2026, 12, 1), 2, Location.HELADERA),
+            Product(2, "Queso", LocalDate.of(2026, 12, 5), 1, Location.HELADERA, ProductStatus.DISCARDED),
+        )
+    )
+
+    @Before
+    fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
+
+    @After
+    fun tearDown() = Dispatchers.resetMain()
+
+    private val events = FakeEventRepository()
+
+    private fun viewModel(id: Long) =
+        ProductDetailViewModel(id, GetProductDetailUseCase(repo), CloseUnitsUseCase(repo, events, NoTransaction))
+
+    // WhileSubscribed: collect so the stateIn upstream is active.
+    private fun kotlinx.coroutines.test.TestScope.observe(vm: ProductDetailViewModel) {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} }
+    }
+
+    @Test
+    fun loadsProductContent() = runTest {
+        val vm = viewModel(1)
+        observe(vm)
+        assertFalse(vm.state.value.isLoading)
+        assertEquals("Leche", vm.state.value.item?.product?.name)
+        assertFalse(vm.state.value.notAvailable)
+    }
+
+    @Test
+    fun markConsumedSetsRemovalAndUpdatesRepository() = runTest {
+        val vm = viewModel(1)
+        observe(vm)
+        vm.markConsumed(2)
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 2, true, 1), vm.state.value.removal)
+        assertEquals(ProductStatus.CONSUMED, repo.getProduct(1).first()?.status)
+        assertFalse(vm.state.value.notAvailable)
+    }
+
+    @Test
+    fun partialConsumeKeepsTheProductActiveAndRecordsHowToUndo() = runTest {
+        val vm = viewModel(1)
+        observe(vm)
+        vm.markConsumed(1)
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.CONSUMED, 1, false, 1), vm.state.value.removal)
+        assertEquals(ProductStatus.ACTIVE, repo.getProduct(1).first()?.status)
+        assertEquals(1, repo.getProduct(1).first()?.quantity)
+    }
+
+    @Test
+    fun discardGoesThroughTheSameCloseWithEveryUnit() = runTest {
+        val vm = viewModel(1)
+        observe(vm)
+        vm.markDiscarded()
+        assertEquals(ProductRemoval(1, "Leche", ProductStatus.DISCARDED, 2, true, 1), vm.state.value.removal)
+        assertEquals(ProductStatus.DISCARDED, repo.getProduct(1).first()?.status)
+    }
+
+    @Test
+    fun singleUnitStillProducesARemovalThatUndoReopens() = runTest {
+        repo.products.value = listOf(Product(3, "Queso", LocalDate.of(2026, 12, 5), 1, Location.HELADERA))
+        val vm = viewModel(3)
+        observe(vm)
+        vm.markConsumed(1)
+        val removal = vm.state.value.removal!!
+        assertEquals(ProductRemoval(3, "Queso", ProductStatus.CONSUMED, 1, true, 1), removal)
+        RestoreUnitsUseCase(repo, events, NoTransaction)(removal.id, removal.units, removal.status, removal.closed, removal.eventId)
+        assertEquals(ProductStatus.ACTIVE, repo.getProduct(3).first()?.status)
+        assertEquals(emptyList<Any>(), events.events.value) // undo removed the event it undid
+    }
+
+    @Test
+    fun secondCallDoesNothing() = runTest {
+        val vm = viewModel(1)
+        observe(vm)
+        vm.markConsumed(2)
+        vm.markDiscarded()
+        assertEquals(ProductStatus.CONSUMED, repo.getProduct(1).first()?.status)
+        assertEquals(ProductStatus.CONSUMED, vm.state.value.removal?.status)
+    }
+
+    @Test
+    fun unknownIdIsNotAvailable() = runTest {
+        val vm = viewModel(99)
+        observe(vm)
+        assertTrue(vm.state.value.notAvailable)
+    }
+
+    @Test
+    fun alreadyDiscardedProductIsNotAvailableAndButtonsAreNoOps() = runTest {
+        val vm = viewModel(2)
+        observe(vm)
+        assertTrue(vm.state.value.notAvailable)
+        vm.markConsumed(1)
+        assertNull(vm.state.value.removal)
+        assertEquals(ProductStatus.DISCARDED, repo.getProduct(2).first()?.status)
+        assertNotNull(vm.state.value.item)
+    }
+
+    @Test
+    fun unavailableNoticeIsSingleUse() = runTest {
+        val handle = androidx.lifecycle.SavedStateHandle()
+        val vm = ProductDetailViewModel(1, GetProductDetailUseCase(repo), CloseUnitsUseCase(repo, FakeEventRepository(), NoTransaction), handle)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.unavailableNotice.collect {} }
+        assertFalse(vm.unavailableNotice.value)
+        handle.putProductUnavailable()
+        assertTrue(vm.unavailableNotice.value)
+        vm.onUnavailableShown()
+        assertFalse(vm.unavailableNotice.value)
+    }
+}
